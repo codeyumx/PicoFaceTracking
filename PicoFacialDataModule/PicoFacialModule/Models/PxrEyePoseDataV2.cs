@@ -1,7 +1,7 @@
 ﻿using System.Runtime.InteropServices;
 using System.Text;
 
-namespace PicoFacialDataModule.Models
+namespace PicoFacialDataModule.PicoFacialModule.Models
 {
     [Flags]
     public enum EyePoseStatus : uint

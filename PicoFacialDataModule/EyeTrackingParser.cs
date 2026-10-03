@@ -1,4 +1,4 @@
-﻿using PicoFacialDataModule.Models;
+﻿using PicoFacialDataModule.PicoFacialModule.Models;
 using VRCFaceTracking;
 using VRCFaceTracking.Core.Params.Expressions;
 
