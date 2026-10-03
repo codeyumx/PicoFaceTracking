@@ -12,8 +12,8 @@ namespace PicoFacialDataModule
     enum PicoFacialDataPayload
     {
         FT_INFO_START,
-        PXR_EYE_POSE_START = 380,
-        PXR_EYE_POSE_END = PXR_EYE_POSE_START + 156
+        PXR_EYE_POSE_START = 384,
+        PXR_EYE_POSE_END = PXR_EYE_POSE_START + 200
     }
 
     public class PicoFacialDataModule : ExtTrackingModule

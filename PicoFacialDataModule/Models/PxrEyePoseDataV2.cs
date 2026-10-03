@@ -23,8 +23,6 @@ namespace PicoFacialDataModule.Models
     [StructLayout(LayoutKind.Sequential, Pack = 1)]
     public struct PxrEyePoseDataV2
     {
-        public uint Timestamp;
-
         public EyePoseStatus LeftEyePoseStatus;
         public EyePoseStatus RightEyePoseStatus;
         public EyePoseStatus CombinedEyePoseStatus;
@@ -73,6 +71,28 @@ namespace PicoFacialDataModule.Models
 
         public EyePoseStatus FoveatedGazeTrackingState;
 
+        public uint Unknown; // Always empty
+        
+        public uint AlwaysFourHundred; // Always... well
+        public uint AlwaysFourHundred2;
+
+        public uint Unknown2; // Always empty
+        public uint Unknown3; // Always empty
+        public uint Unknown4; // Always empty
+        public uint Unknown5; // Always empty
+
+        public uint Timestamp;
+        public uint PupilState; // Most likely status bits
+
+        public float LeftEyePupilPositionX;
+        public float LeftEyePupilPositionY;
+
+        public float RightEyePupilPositionX;
+        public float RightEyePupilPositionY;
+
+        public uint Unknown8; // Always empty
+        public uint Unknown9; // Always empty
+
         public override string ToString()
         {
             var sb = new StringBuilder();
@@ -117,11 +137,23 @@ namespace PicoFacialDataModule.Models
             sb.AppendLine($"LeftEyePositionGuideY: {LeftEyePositionGuideY}");
             sb.AppendLine($"LeftEyePositionGuideZ: {LeftEyePositionGuideZ}");
 
+            sb.AppendLine($"RightEyePositionGuideX: {RightEyePositionGuideX}");
+            sb.AppendLine($"RightEyePositionGuideY: {RightEyePositionGuideY}");
+            sb.AppendLine($"RightEyePositionGuideZ: {RightEyePositionGuideZ}");
+
             sb.AppendLine($"FoveatedGazeDirectionX: {FoveatedGazeDirectionX}");
             sb.AppendLine($"FoveatedGazeDirectionY: {FoveatedGazeDirectionY}");
             sb.AppendLine($"FoveatedGazeDirectionZ: {FoveatedGazeDirectionZ}");
 
             sb.AppendLine($"FoveatedGazeTrackingState: {(uint)FoveatedGazeTrackingState:B8}");
+
+            sb.AppendLine($"PupilState: {(uint)PupilState:B8}");
+
+            sb.AppendLine($"LeftEyePupilPositionX: {LeftEyePupilPositionX}");
+            sb.AppendLine($"LeftEyePupilPositionY: {LeftEyePupilPositionY}");
+
+            sb.AppendLine($"RightEyePupilPositionX: {RightEyePupilPositionX}");
+            sb.AppendLine($"RightEyePupilPositionY: {RightEyePupilPositionY}");
 
             return sb.ToString();
         }
