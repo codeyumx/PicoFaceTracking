@@ -1,6 +1,6 @@
 ﻿using System.Net;
 
-namespace PicoFacialDataModule.PicoFacialModule.Interfaces
+namespace PicoFacialDataModule.PicoFacialModule
 {
     public interface IPicoFacialModuleConnector : IDisposable
     {

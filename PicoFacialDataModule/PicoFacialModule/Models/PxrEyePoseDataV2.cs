@@ -71,7 +71,7 @@ namespace PicoFacialDataModule.PicoFacialModule.Models
 
         public EyePoseStatus FoveatedGazeTrackingState;
 
-        public uint Unknown; // Always empty
+        /*public uint Unknown; // Always empty
         
         public uint AlwaysFourHundred; // Always... well
         public uint AlwaysFourHundred2;
@@ -91,13 +91,13 @@ namespace PicoFacialDataModule.PicoFacialModule.Models
         public float RightEyePupilPositionY;
 
         public uint Unknown8; // Always empty
-        public uint Unknown9; // Always empty
+        public uint Unknown9; // Always empty*/
 
         public override string ToString()
         {
             var sb = new StringBuilder();
 
-            sb.AppendLine($"Timestamp: {Timestamp}");
+            //sb.AppendLine($"Timestamp: {Timestamp}");
 
             sb.AppendLine($"LeftEyePoseStatus: {(uint)LeftEyePoseStatus:B8}");
             sb.AppendLine($"RightEyePoseStatus: {(uint)RightEyePoseStatus:B8}");
@@ -147,13 +147,13 @@ namespace PicoFacialDataModule.PicoFacialModule.Models
 
             sb.AppendLine($"FoveatedGazeTrackingState: {(uint)FoveatedGazeTrackingState:B8}");
 
-            sb.AppendLine($"PupilState: {(uint)PupilState:B8}");
+            /*sb.AppendLine($"PupilState: {(uint)PupilState:B8}");
 
             sb.AppendLine($"LeftEyePupilPositionX: {LeftEyePupilPositionX}");
             sb.AppendLine($"LeftEyePupilPositionY: {LeftEyePupilPositionY}");
 
             sb.AppendLine($"RightEyePupilPositionX: {RightEyePupilPositionX}");
-            sb.AppendLine($"RightEyePupilPositionY: {RightEyePupilPositionY}");
+            sb.AppendLine($"RightEyePupilPositionY: {RightEyePupilPositionY}");*/
 
             return sb.ToString();
         }

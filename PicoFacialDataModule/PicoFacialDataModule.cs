@@ -1,7 +1,6 @@
 ﻿using Microsoft.Extensions.Logging;
 using PicoFacialDataModule.PicoFacialModule;
 using PicoFacialDataModule.PicoFacialModule.Exceptions;
-using PicoFacialDataModule.PicoFacialModule.Interfaces;
 using VRCFaceTracking;
 
 namespace PicoFacialDataModule
@@ -92,10 +91,12 @@ namespace PicoFacialDataModule
                         _eyeTrackingParser.Parse(trackingResult.EyeData.Value, trackingResult.FaceData.Value);
                 }
             }
+#if !DEBUG
             catch (ClientIncorrectDataException)
             {
                 //Noop
             }
+#endif
             catch (ClientDiedException)
             {
                 //Noop

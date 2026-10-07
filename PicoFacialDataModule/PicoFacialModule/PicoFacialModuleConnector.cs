@@ -1,20 +1,12 @@
-﻿using PicoFacialDataModule.PicoFacialModule.Exceptions;
-using PicoFacialDataModule.PicoFacialModule.Interfaces;
-using PicoFacialDataModule.PicoFacialModule.Models;
+﻿using Microsoft.Extensions.Logging;
+using PicoFacialDataModule.PicoFacialModule.Exceptions;
+using PicoFacialDataModule.PicoFacialModule.Payload;
 using System.Net;
 using System.Net.Sockets;
-using System.Runtime.InteropServices;
 using System.Text;
 
 namespace PicoFacialDataModule.PicoFacialModule
 {
-    enum PicoFacialDataPayload
-    {
-        FT_INFO_START,
-        PXR_EYE_POSE_START = 384,
-        PXR_EYE_POSE_END = PXR_EYE_POSE_START + 200
-    }
-
     public class PicoFacialModuleConnector : IPicoFacialModuleConnector
     {
         private const string MULTICAST_ADDRESS = "239.255.255.250";
@@ -29,7 +21,8 @@ namespace PicoFacialDataModule.PicoFacialModule
         private string? _ip;
         private int _port;
 
-        private UdpClient? _udpClient;
+        private readonly UdpClient? _udpClient;
+        private readonly IPicoFacialDataPayload _facialDataPayload;
         private IPEndPoint? _client;
 
         private byte[]? _establishBuffer;
@@ -44,6 +37,7 @@ namespace PicoFacialDataModule.PicoFacialModule
 
             _ip = IP;
             _port = port;
+            _facialDataPayload = new PicoFacialDataPayload();
         }
 
         ~PicoFacialModuleConnector()
@@ -65,7 +59,7 @@ namespace PicoFacialDataModule.PicoFacialModule
                 {
                     buffer = _establishBuffer;
                     _establishBuffer = null;
-                    break;
+                    continue;
                 }
 
                 try
@@ -80,15 +74,15 @@ namespace PicoFacialDataModule.PicoFacialModule
 
             } while (!HasTrackingData(buffer));
 
-            if (buffer.Length < (int)PicoFacialDataPayload.PXR_EYE_POSE_END || buffer.Length > (int)PicoFacialDataPayload.PXR_EYE_POSE_END)
+            if (!_facialDataPayload.IsPayloadValid(buffer))
                 throw new ClientIncorrectDataException();
 
-            if (!MemoryMarshal.TryRead<PicoFTInfo>(buffer![(int)PicoFacialDataPayload.FT_INFO_START..(int)PicoFacialDataPayload.PXR_EYE_POSE_START], out var faceData))
+            if (!_facialDataPayload.GetFaceTrackingData(buffer, out var faceData))
                 return;
 
             trackingResult.FaceData = faceData;
 
-            if (!MemoryMarshal.TryRead<PxrEyePoseDataV2>(buffer![(int)PicoFacialDataPayload.PXR_EYE_POSE_START..], out var eyeData))
+            if (!_facialDataPayload.GetEyeTrackingData(buffer, out var eyeData))
                 return;
 
             trackingResult.EyeData = eyeData;
