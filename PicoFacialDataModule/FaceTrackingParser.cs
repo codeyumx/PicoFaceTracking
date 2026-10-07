@@ -92,6 +92,15 @@ namespace PicoFacialDataModule
 
             #endregion
 
+            #region Eye Expressions
+
+            face[EyeWideRight] = blendshapes[EyeWideR];
+            face[EyeWideLeft] = blendshapes[EyeWideL];
+            face[EyeSquintRight] = blendshapes[EyeSquintR];
+            face[EyeSquintLeft] = blendshapes[EyeSquintL];
+
+            #endregion
+
             #region Tongue Expressions
 
             face[TongueOut] = blendshapes[TongueShapeOut];
