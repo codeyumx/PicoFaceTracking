@@ -6,13 +6,12 @@ import android.content.Context;
 import android.content.Intent;
 import android.util.Base64;
 
+import java.net.Inet4Address;
 import java.nio.charset.StandardCharsets;
 
-import java.net.Inet4Address;
-
 /**
- * Lets the install script set the pairing key, the PC address (empty: pair automatically) and the supporter licence,
- * and switch tracking on or off over adb:
+ * Lets the install script set the PC address (empty: pair automatically) and the supporter licence, and switch
+ * tracking on or off over adb. (The pairing key only comes from pairing by code, see PairingSession.)
  * <pre>
  * adb shell am broadcast -n io.github.codeyumx.picofacetracking/.AdbControlReceiver --es pc_address 192.168.1.20 --ez tracking true
  * </pre>
@@ -22,8 +21,6 @@ import java.net.Inet4Address;
 public final class AdbControlReceiver extends BroadcastReceiver {
     private static final String EXTRA_PC_ADDRESS = "pc_address";
     private static final String EXTRA_TRACKING = "tracking";
-    /** Base64 key from the PC (see docs/protocol-v2.md); empty removes it. Delivered over USB only. */
-    private static final String EXTRA_PAIRING_KEY = "pairing_key";
     /** Base64 of a licence file (see Licence); empty removes it. */
     private static final String EXTRA_LICENCE = "licence";
 
@@ -43,22 +40,6 @@ public final class AdbControlReceiver extends BroadcastReceiver {
             if (!normalized.equals(prefs.pcAddress())) {
                 prefs.setPcAddress(normalized);
                 // A running tracker keeps the address it started with.
-                if (prefs.enabled()) {
-                    TrackingService.stop(context);
-                    TrackingService.start(context);
-                }
-            }
-        }
-
-        String key = intent.getStringExtra(EXTRA_PAIRING_KEY);
-        if (key != null) {
-            if (!key.isEmpty() && Pairing.fromBase64(key) == null) {
-                fail("pairing_key must be a Base64 encoded 32-byte key");
-                return;
-            }
-            if (!key.equals(prefs.pairingKey())) {
-                prefs.setPairingKey(key);
-                // A running tracker keeps the key it started with.
                 if (prefs.enabled()) {
                     TrackingService.stop(context);
                     TrackingService.start(context);

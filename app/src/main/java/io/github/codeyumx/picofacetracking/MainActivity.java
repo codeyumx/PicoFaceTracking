@@ -7,6 +7,7 @@ import android.graphics.Typeface;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
+import android.text.InputFilter;
 import android.text.InputType;
 import android.text.method.DigitsKeyListener;
 import android.view.View;
@@ -14,6 +15,8 @@ import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.LinearLayout;
+import android.widget.RadioButton;
+import android.widget.RadioGroup;
 import android.widget.ScrollView;
 import android.widget.Switch;
 import android.widget.TextView;
@@ -21,6 +24,7 @@ import android.widget.TextView;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.Inet4Address;
+import java.net.InetSocketAddress;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
@@ -53,6 +57,15 @@ public final class MainActivity extends Activity {
     private TextView status;
     private TextView pairingInfo;
     private Button removeKey;
+    private Button pairWithPc;
+    private LinearLayout pairingPanel;
+    private TextView pairingStatus;
+    private RadioGroup pairingPcs;
+    private EditText pairingCode;
+    private Button pairingSubmit;
+    private Button pairingCancel;
+    /** The PCs shown in pairingPcs; a radio button's id is its index + 1. */
+    private List<InetSocketAddress> shownPcs = new ArrayList<>();
     private TextView licenceInfo;
     private boolean showingState;
 
@@ -118,6 +131,7 @@ public final class MainActivity extends Activity {
             showState();
         });
         content.addView(removeKey);
+        addPairing(content);
         content.addView(text("Paired PC (the PC running VRCFaceTracking). Only this PC can receive your tracking data. "
                 + "Leave it empty to pair with the first PC on your network that runs VRCFaceTracking; "
                 + "clear it to pair again, for example when the PC gets a new address.", 15));
@@ -135,7 +149,8 @@ public final class MainActivity extends Activity {
         content.addView(startAtBoot);
 
         content.addView(heading("On the PC"));
-        content.addView(text("Install the Pico Facial Data Module in VRCFaceTracking. Pico4SAFTExtTrackingModule can stay installed: "
+        content.addView(text("Install \"Pico Facial Data Module (paired)\" in VRCFaceTracking, which can pair by code, or thoricelli's "
+                + "Pico Facial Data Module, which pairs by address. Pico4SAFTExtTrackingModule can stay installed: "
                 + "it only starts while PICO Connect or Streaming Assistant runs on the PC. "
                 + "Tracking only flows while the headset is worn.", 15));
         content.addView(heading("After a restart"));
@@ -235,6 +250,93 @@ public final class MainActivity extends Activity {
         recreate();
     }
 
+    /** Pairing by code: the code from VRCFaceTracking's Output page is typed here. */
+    private void addPairing(LinearLayout content) {
+        pairWithPc = new Button(this);
+        pairWithPc.setOnClickListener(view -> {
+            PairingSession.start(this);
+            pairingCode.setText("");
+            showState();
+        });
+        content.addView(pairWithPc);
+
+        pairingPanel = new LinearLayout(this);
+        pairingPanel.setOrientation(LinearLayout.VERTICAL);
+        pairingStatus = text("", 15);
+        pairingPanel.addView(pairingStatus);
+        pairingPcs = new RadioGroup(this);
+        pairingPanel.addView(pairingPcs);
+        pairingCode = new EditText(this);
+        pairingCode.setInputType(InputType.TYPE_CLASS_NUMBER);
+        pairingCode.setKeyListener(DigitsKeyListener.getInstance("0123456789 "));
+        pairingCode.setFilters(new InputFilter[]{new InputFilter.LengthFilter(7)});
+        pairingCode.setHint("6-digit pairing code");
+        pairingPanel.addView(pairingCode);
+        pairingSubmit = new Button(this);
+        pairingSubmit.setText("Pair");
+        pairingSubmit.setOnClickListener(view -> {
+            PairingSession session = PairingSession.current();
+            if (session == null || !session.running())
+                return;
+            int index = pairingPcs.getCheckedRadioButtonId() - 1;
+            InetSocketAddress pc = index >= 0 && index < shownPcs.size() ? shownPcs.get(index) : null;
+            String error = session.submit(pc, pairingCode.getText().toString());
+            if (error != null)
+                pairingCode.setError(error);
+            else
+                pairingCode.setText("");
+            showState();
+        });
+        pairingPanel.addView(pairingSubmit);
+        pairingCancel = new Button(this);
+        pairingCancel.setText("Cancel pairing");
+        pairingCancel.setOnClickListener(view -> {
+            PairingSession session = PairingSession.current();
+            if (session != null)
+                session.cancel();
+            showState();
+        });
+        pairingPanel.addView(pairingCancel);
+        content.addView(pairingPanel);
+    }
+
+    private void showPairing(boolean keyed) {
+        PairingSession session = PairingSession.current();
+        boolean pairing = session != null && session.running();
+        pairWithPc.setText(keyed ? "Pair again by code (new key)" : "Pair by code");
+        pairWithPc.setVisibility(pairing ? View.GONE : View.VISIBLE);
+        removeKey.setVisibility(keyed && !pairing ? View.VISIBLE : View.GONE);
+        pairingPanel.setVisibility(session != null ? View.VISIBLE : View.GONE);
+        if (session == null)
+            return;
+
+        pairingStatus.setText(session.status());
+        List<String> labels = new ArrayList<>();
+        List<InetSocketAddress> pcs = session.pcs(labels);
+        if (!pcs.equals(shownPcs)) {
+            InetSocketAddress checked = pairingPcs.getCheckedRadioButtonId() > 0 && pairingPcs.getCheckedRadioButtonId() <= shownPcs.size()
+                    ? shownPcs.get(pairingPcs.getCheckedRadioButtonId() - 1) : null;
+            pairingPcs.removeAllViews();
+            for (int i = 0; i < pcs.size(); i++) {
+                RadioButton button = new RadioButton(this);
+                button.setId(i + 1);
+                button.setText(labels.get(i));
+                pairingPcs.addView(button);
+            }
+            shownPcs = pcs;
+            int keep = checked != null ? pcs.indexOf(checked) : -1;
+            if (keep >= 0)
+                pairingPcs.check(keep + 1);
+            else if (pcs.size() == 1)
+                pairingPcs.check(1);
+        }
+        boolean canType = pairing && !pcs.isEmpty();
+        pairingPcs.setVisibility(canType ? View.VISIBLE : View.GONE);
+        pairingCode.setVisibility(canType ? View.VISIBLE : View.GONE);
+        pairingSubmit.setVisibility(canType ? View.VISIBLE : View.GONE);
+        pairingCancel.setVisibility(pairing ? View.VISIBLE : View.GONE);
+    }
+
     private void turnOn() {
         // Empty: pair with the first PC on the network that runs VRCFaceTracking.
         String typed = pcAddress.getText().toString().trim();
@@ -269,10 +371,10 @@ public final class MainActivity extends Activity {
         status.setText(on || TrackingService.status().startsWith("Stopped:") ? TrackingService.status() : "Off");
         boolean keyed = !prefs.pairingKey().isEmpty();
         pairingInfo.setText(keyed
-                ? "Paired by key with the PC that ran Install face tracking app.bat. Its address can change; "
-                + "data is encrypted. The address below is not used."
-                : "Paired by address (no pairing key). Run Install face tracking app.bat to pair by key.");
-        removeKey.setVisibility(keyed ? View.VISIBLE : View.GONE);
+                ? "Paired by key. The PC's address can change, and the data is encrypted. The address below is not used."
+                : "Paired by address (no pairing key). Pairing by code adds encryption and keeps working when the PC's "
+                + "address changes; it needs \"Pico Facial Data Module (paired)\" in VRCFaceTracking.");
+        showPairing(keyed);
         showingState = false;
     }
 

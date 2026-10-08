@@ -23,6 +23,8 @@ public final class TrackingService extends Service implements Tracker.Listener {
     private static final int NOTIFICATION_ID = 1;
 
     private static volatile String status = "Off";
+    /** True from onCreate until the tracker has stopped in onDestroy. */
+    private static volatile boolean running;
 
     private final Handler mainThread = new Handler(Looper.getMainLooper());
     private Tracker tracker;
@@ -32,7 +34,14 @@ public final class TrackingService extends Service implements Tracker.Listener {
         return status;
     }
 
+    static boolean running() {
+        return running;
+    }
+
+    /** Pairing by code uses the same port; tracking starts again when it ends. */
     static void start(Context context) {
+        if (PairingSession.active())
+            return;
         context.startForegroundService(new Intent(context, TrackingService.class));
     }
 
@@ -43,6 +52,7 @@ public final class TrackingService extends Service implements Tracker.Listener {
     @Override
     public void onCreate() {
         super.onCreate();
+        running = true;
         NotificationChannel channel = new NotificationChannel(CHANNEL_ID, getString(R.string.app_name), NotificationManager.IMPORTANCE_LOW);
         getSystemService(NotificationManager.class).createNotificationChannel(channel);
     }
@@ -88,6 +98,7 @@ public final class TrackingService extends Service implements Tracker.Listener {
         }
         if (!status.startsWith("Stopped:"))
             status = "Off";
+        running = false;
         super.onDestroy();
     }
 
