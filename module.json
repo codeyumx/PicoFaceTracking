@@ -1,11 +1,11 @@
 {
   "ModuleId": "168d44d5-bbb7-4e86-8ae5-732047311d43",
-  "Version": "0.4-paired.1",
+  "Version": "0.5-paired.1",
   "AuthorName": "thoricelli, codeyumx",
   "ModuleName": "Pico Facial Data Module (paired)",
-  "ModuleDescription": "Pico Facial Data Module with pairing by key: finds the paired PICO headset when the PC address changes and encrypts the tracking data.",
-  "UsageInstructions": "Run \"Install face tracking app.bat\" with the headset on USB: it pairs the Pico Face Tracking app with this PC. Then restart VRCFaceTracking.",
-  "DownloadUrl": "https://github.com/codeyumx/PicoFacialDataModule/releases/download/v0.4-paired.1/picofacialdatamodule.zip",
+  "ModuleDescription": "Pico Facial Data Module with pairing by code: finds the paired PICO headset when the PC address changes and encrypts the tracking data.",
+  "UsageInstructions": "In the Pico Face Tracking app on the headset, press \"Pair by code\" and type the 6-digit code shown on VRCFaceTracking's Output page.",
+  "DownloadUrl": "https://github.com/codeyumx/PicoFacialDataModule/releases/download/v0.5-paired.1/picofacialdatamodule.zip",
   "ModulePageUrl": "https://github.com/codeyumx/PicoFacialDataModule/tree/custom-build",
   "DllFileName": "PicoFacialDataModule.dll"
 }

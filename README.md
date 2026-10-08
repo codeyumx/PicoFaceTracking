@@ -9,17 +9,18 @@ A VRCFaceTracking module that connects to the `picofacialdatadaemon` via UDP.
 3. Select the ZIP you downloaded.
 4. Run the `picofacialdatadaemon`, or install it via Magisk.
 
-### Pairing by key (protocol version 2)
+### Pairing by code (protocol version 2)
 
 By default the module finds the daemon with an unauthenticated discovery request, and anyone on the network can ask the
-headset for tracking data. With a pairing key, the module and the headset prove to each other that they share the key,
-find each other again when the PC's address changes, and encrypt the tracking data.
+headset for tracking data. Once paired, the module and the headset prove to each other that they share a key, find
+each other again when the PC's address changes, and encrypt the tracking data.
 
-1. Put a Base64 encoded 32-byte random key in `%APPDATA%/PicoFacialData/pairing-key.txt`.
-2. Give the same key to the headset side (it is copied over USB, never over the network).
-3. Restart VRCFaceTracking. The log shows "Paired by key ... using protocol version 2".
+1. Start pairing on the headset side (in the Pico Face Tracking app: **Pair by code**).
+2. VRCFaceTracking's Output page shows "Pairing code for <headset> (<address>): 123 456".
+3. Type the code on the headset. The log shows "Paired with <headset>", and the module switches to the new key at once.
 
-Without the file the module uses the original protocol. The protocol is described in [docs/protocol-v2.md](docs/protocol-v2.md).
+The key is saved in `%APPDATA%/PicoFacialData/pairing-key.txt`; pairing again replaces it. Without the file the module
+uses the original protocol. The protocol is described in [docs/protocol-v2.md](docs/protocol-v2.md).
 
 ### Settings
 

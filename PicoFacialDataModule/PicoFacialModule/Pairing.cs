@@ -31,7 +31,7 @@ namespace PicoFacialDataModule.PicoFacialModule
         private static readonly byte[] FromHeadset = { (byte)'H', (byte)'M', (byte)'D', 0 };
         private static readonly byte[] FromPc = { (byte)'P', (byte)'C', 0, 0 };
 
-        /// <summary>Base64 text of the 32-byte key, written by the headset install script.</summary>
+        /// <summary>Base64 text of the 32-byte key, written when a headset pairs by code (see <see cref="PairingListener"/>).</summary>
         public static string KeyPath => Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "PicoFacialData", "pairing-key.txt");
 
@@ -63,6 +63,19 @@ namespace PicoFacialDataModule.PicoFacialModule
             if (key.Length != KeyLength)
                 throw new InvalidDataException($"{KeyPath} must contain a {KeyLength}-byte key.");
 
+            return new Pairing(key);
+        }
+
+        /// <summary>Saves a new key at <see cref="KeyPath"/>, replacing the old one, and returns its pairing.</summary>
+        public static Pairing Save(byte[] key)
+        {
+            if (key.Length != KeyLength)
+                throw new ArgumentException($"The key must have {KeyLength} bytes.", nameof(key));
+
+            Directory.CreateDirectory(Path.GetDirectoryName(KeyPath)!);
+            var temporary = KeyPath + ".new";
+            File.WriteAllText(temporary, Convert.ToBase64String(key));
+            File.Move(temporary, KeyPath, overwrite: true);
             return new Pairing(key);
         }
 
