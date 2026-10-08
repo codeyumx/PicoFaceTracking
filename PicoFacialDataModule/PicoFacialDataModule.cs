@@ -21,7 +21,7 @@ namespace PicoFacialDataModule
         private int _consolePixels;
 #endif
 
-        public override (bool SupportsEye, bool SupportsExpression) Supported => (true, false);
+        public override (bool SupportsEye, bool SupportsExpression) Supported => (true, true);
 
         public override (bool eyeSuccess, bool expressionSuccess) Initialize(bool eyeAvailable, bool expressionAvailable)
         {
@@ -39,9 +39,20 @@ namespace PicoFacialDataModule
                 _faceTrackingParser = new FaceTrackingParser();
                 _eyeTrackingParser = new EyeTrackingParser(_moduleSettings);
 
-                _picoFacialModuleConnector = new PicoFacialModuleConnector(PORT, _moduleSettings.IP);
+                // With a pairing key: protocol version 2, which finds the paired headset on any address and encrypts the data.
+                var pairing = Pairing.Load();
+                if (pairing != null)
+                {
+                    Logger.LogInformation($"Paired by key ({Pairing.KeyPath}), using protocol version 2.");
+                    _picoFacialModuleConnector = new PairedConnector(PORT, _moduleSettings.IP, pairing);
+                }
+                else
+                {
+                    _picoFacialModuleConnector = new PicoFacialModuleConnector(PORT, _moduleSettings.IP);
+                }
 
-                return (!_moduleSettings.DisableEyeTracking, !_moduleSettings.DisableFaceTracking);
+                // Only claim what no other module has claimed already.
+                return (eyeAvailable && !_moduleSettings.DisableEyeTracking, expressionAvailable && !_moduleSettings.DisableFaceTracking);
             } catch (Exception e)
             {
                 Logger.LogCritical($"Initialization failed with the following message: {e.Message}\n Stacktrace:\n{e.StackTrace}");
