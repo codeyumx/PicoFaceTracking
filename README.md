@@ -12,7 +12,7 @@ It works with either VRCFaceTracking module:
 
 - [Pico Facial Data Module](https://github.com/thoricelli/PicoFacialDataModule) 0.3 by thoricelli: original protocol,
   the PC is recognised by its address.
-- [Pico Facial Data Module (paired)](https://github.com/codeyumx/PicoFacialDataModule/releases/tag/v0.5-paired.1):
+- [Pico Facial Data Module (paired)](https://github.com/codeyumx/PicoFacialDataModule/releases/tag/v0.5-paired.2):
   pairing by code (protocol version 2, below).
 
 Download the APK from [Releases](https://github.com/codeyumx/PicoFaceTracking/releases). Everything is free except the
