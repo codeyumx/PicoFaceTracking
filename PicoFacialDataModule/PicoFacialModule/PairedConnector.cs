@@ -27,7 +27,9 @@ namespace PicoFacialDataModule.PicoFacialModule
 
         public PairedConnector(int port, string? IP, Pairing pairing)
         {
-            _udpClient = new UdpClient(port)
+            // Any local port: the headset answers the address and port the DISCOVER came from, so this module does not
+            // compete for port 9030 with another Pico module.
+            _udpClient = new UdpClient(0)
             {
                 EnableBroadcast = true,
                 MulticastLoopback = false,
