@@ -1,0 +1,45 @@
+name: Build
+
+on:
+  workflow_dispatch:
+  push:
+    branches: ["main"]
+    paths:
+      - "PicoFacialDataModule/**"
+      - "PicoFacialDataModule.Tests/**"
+      - "module.json"
+      - "PicoFacialDataModule.slnx"
+  pull_request:
+    branches: ["main"]
+    paths:
+      - "PicoFacialDataModule/**"
+      - "PicoFacialDataModule.Tests/**"
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          fetch-depth: 0
+
+      - name: Setup MSBuild
+        uses: microsoft/setup-msbuild@v2
+
+      - name: Restore NuGet Packages
+        run: nuget restore PicoFacialDataModule.slnx
+
+      - name: Build with MSBuild
+        run: msbuild PicoFacialDataModule/PicoFacialDataModule.csproj /p:Configuration=Release /p:BuildProjectReferences=true
+
+      - name: Test the pairing protocol
+        run: dotnet test PicoFacialDataModule.Tests/PicoFacialDataModule.Tests.csproj -c Release
+
+      - name: Upload
+        uses: actions/upload-artifact@v4
+        with:
+          name: artifact
+          path: PicoFacialDataModule/bin/Release/net10.0/PicoFacialDataModule.dll
