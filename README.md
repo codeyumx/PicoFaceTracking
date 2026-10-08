@@ -12,11 +12,12 @@ It works with either VRCFaceTracking module:
 
 - [Pico Facial Data Module](https://github.com/thoricelli/PicoFacialDataModule) 0.3 by thoricelli: original protocol,
   the PC is recognised by its address.
-- [Pico Facial Data Module (paired)](https://github.com/codeyumx/PicoFacialDataModule/releases/tag/v0.5-paired.2):
-  pairing by code (protocol version 2, below).
+- **Pico Facial Data Module (paired)**, in [`module/`](module) of this repository: thoricelli's module plus pairing by
+  code (protocol version 2, below). Each release has it as `picofacialdatamodule-paired.zip`.
 
-Download the APK from [Releases](https://github.com/codeyumx/PicoFaceTracking/releases). Everything is free except the
-[tracking adjustments](#tracking-adjustments-supporters), which unlock with a supporter licence from Patreon.
+Download the APK and the module from [Releases](https://github.com/codeyumx/PicoFaceTracking/releases). Everything is
+free except the [tracking adjustments](#tracking-adjustments-supporters), which unlock with a supporter licence from
+Patreon.
 
 ## Panel next to the running VR app
 
@@ -64,7 +65,7 @@ frames (AES-256-GCM). No cable and no PC software besides VRCFaceTracking:
 
 The code never crosses the network: SPAKE2 turns it into the key, and someone who does not know it gets one guess per
 code. **Pair again by code** makes a new key and replaces the old one on both sides. Tracking pauses while the app waits
-for a code (at most 5 minutes). The protocol is described in [docs/protocol-v2.md](docs/protocol-v2.md).
+for a code (at most 5 minutes). The protocol is described in [module/docs/protocol-v2.md](module/docs/protocol-v2.md).
 
 To turn it off, press **Remove pairing key**: the app pairs by address again and works with thoricelli's original
 module. Without a key the app speaks the original protocol.
@@ -120,7 +121,7 @@ An empty `pc_address` forgets the paired PC.
 
 `AdbControlReceiver` is protected by `android.permission.DUMP`, which the adb shell holds and normal apps cannot get,
 so other apps on the headset cannot start tracking or redirect it. On the PC, install the Pico Facial Data Module in
-VRCFaceTracking.
+VRCFaceTracking: Module Registry, **+**, `picofacialdatamodule-paired.zip` from the release.
 
 ## How it works
 
@@ -131,8 +132,27 @@ daemon's protocol (`DISCOVER_DAEMON`, `MARCO`/`POLO`, `STOP`). Each packet is 38
 
 Without a pairing key the data is not encrypted; use a network you trust. With a pairing key, see above.
 
+## The PC module (`module/`)
+
+`module/` is a [git subtree](https://git-scm.com/book/en/v2/Git-Tools-Advanced-Merging#_subtree_merge) of
+[thoricelli/PicoFacialDataModule](https://github.com/thoricelli/PicoFacialDataModule) with pairing by code added
+(MIT, thoricelli; see `module/LICENSE`). Its full history is kept, so thoricelli's changes merge in, and changes made
+here can go back to thoricelli as a pull request:
+
+```
+git subtree pull --prefix=module https://github.com/thoricelli/PicoFacialDataModule main
+git subtree push --prefix=module https://github.com/codeyumx/PicoFacialDataModule <branch>   # then open a pull request
+```
+
+Keep commits that change `module/` separate from app commits, so a split carries no app changes. Files under
+`module/` that only matter in thoricelli's repository (`module/.github`, `module/.gitmodules`) stay unchanged, so pulls
+merge cleanly; the root `.gitmodules` and `.github/workflows/build.yml` are the ones used here.
+
 ## Building
 
-GitHub Actions builds the free app on every push to `main` and on pull requests. A `v*` tag builds the release APK with
-the paid features (checked out from the private repository with the `PRO_DEPLOY_KEY` deploy key) and publishes it as a
+GitHub Actions builds the free app (and runs its unit tests) and the PC module (and runs its tests) on every push to
+`main` and on pull requests. A `v*` tag builds the release APK with the paid features (checked out from the private
+repository with the `PRO_DEPLOY_KEY` deploy key) and publishes the APK and `picofacialdatamodule-paired.zip` as a
 GitHub release. Signing uses two repository secrets: `SIGNING_KEYSTORE_BASE64` (a PKCS#12 keystore with key alias `picofacetracking`) and `SIGNING_PASSWORD`.
+
+Clone with `git clone --recursive` (the module builds against the `module/VRCFaceTracking` submodule).

@@ -13,7 +13,7 @@ import javax.crypto.Mac;
 import javax.crypto.spec.GCMParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 
-/** Protocol version 2: a key shared with the PC authenticates the handshake and encrypts the session. See docs/protocol-v2.md. */
+/** Protocol version 2: a key shared with the PC authenticates the handshake and encrypts the session. See module/docs/protocol-v2.md. */
 final class Pairing {
     static final int DISCOVER = 1;
     static final int HELLO = 2;

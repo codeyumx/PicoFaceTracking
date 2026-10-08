@@ -23,7 +23,7 @@ import java.nio.charset.StandardCharsets;
  * Speaks the PicoFacialDataDaemon protocol to VRCFaceTracking's Pico Facial Data Module: wait for a discovery request
  * from the PC, start tracking, stream the newest results, ping (the PC answers), and stop when the PC sends STOP or
  * stops answering. Without a pairing key this is version 1 (plain, the PC is identified by its address); with a key it
- * is version 2 (authenticated handshake, encrypted session, any address), see docs/protocol-v2.md.
+ * is version 2 (authenticated handshake, encrypted session, any address), see module/docs/protocol-v2.md.
  */
 final class Tracker implements Runnable {
     interface Listener {

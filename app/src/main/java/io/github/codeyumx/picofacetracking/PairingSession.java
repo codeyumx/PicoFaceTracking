@@ -22,7 +22,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * One pairing by code with VRCFaceTracking (docs/protocol-v2.md, "Pairing"), started from the settings screen.
+ * One pairing by code with VRCFaceTracking (module/docs/protocol-v2.md, "Pairing"), started from the settings screen.
  * Tracking stops while it runs, because both use UDP port 9030, and starts again afterwards if it is switched on.
  */
 final class PairingSession implements Runnable {

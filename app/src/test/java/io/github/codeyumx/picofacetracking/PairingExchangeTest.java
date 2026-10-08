@@ -15,7 +15,7 @@ import java.util.Base64;
 
 /**
  * Interoperability with the module's side of pairing by code. The vectors come from the reference implementation in
- * docs/protocol-v2.md; the module checks the same vectors, so both sides agree on every byte.
+ * module/docs/protocol-v2.md; the module's tests check the same vectors, so both sides agree on every byte.
  */
 public class PairingExchangeTest {
     private static final BigInteger Y = new BigInteger("fd53b0d8601491d2eade09fdb33f0ed5fed481d65824fd6810cf9e6473a7a673", 16);

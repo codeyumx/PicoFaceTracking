@@ -11,7 +11,7 @@ permissions:
   contents: write
 
 jobs:
-  build:
+  app:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -25,6 +25,10 @@ jobs:
           repository: codeyumx/PicoFaceTracking-pro
           ssh-key: ${{ secrets.PRO_DEPLOY_KEY }}
           path: pro
+
+      - name: Check the release has the paid features
+        if: startsWith(github.ref, 'refs/tags/v')
+        run: test -d pro/src || { echo "release build without the paid features"; exit 1; }
 
       - uses: actions/setup-java@v4
         with:
@@ -63,14 +67,61 @@ jobs:
             PicoFaceTracking.apk
             PicoFaceTracking.apk.sha256
 
+  # The VRCFaceTracking module in module/ (a subtree of codeyumx/PicoFacialDataModule, see README "The PC module").
+  module:
+    runs-on: windows-latest
+    defaults:
+      run:
+        working-directory: module
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - uses: microsoft/setup-msbuild@v2
+
+      - name: Restore NuGet packages
+        run: nuget restore PicoFacialDataModule.slnx
+
+      - name: Build
+        run: msbuild PicoFacialDataModule/PicoFacialDataModule.csproj /p:Configuration=Release /p:BuildProjectReferences=true
+
+      - name: Tests
+        run: dotnet test PicoFacialDataModule.Tests/PicoFacialDataModule.Tests.csproj -c Release
+
+      - name: Zip
+        shell: pwsh
+        run: |
+          Compress-Archive -Path "PicoFacialDataModule/bin/Release/net10.0/PicoFacialDataModule.dll", "module.json" -DestinationPath picofacialdatamodule-paired.zip -Force
+          (Get-FileHash picofacialdatamodule-paired.zip -Algorithm SHA256).Hash.ToLower() + "  picofacialdatamodule-paired.zip" | Out-File -Encoding ascii picofacialdatamodule-paired.zip.sha256
+          Get-Content picofacialdatamodule-paired.zip.sha256
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: PicoFacialDataModule
+          path: |
+            module/picofacialdatamodule-paired.zip
+            module/picofacialdatamodule-paired.zip.sha256
+
+  release:
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: [app, module]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          merge-multiple: true
+
       - name: Publish release
-        if: startsWith(github.ref, 'refs/tags/v')
         env:
           GH_TOKEN: ${{ github.token }}
           TAG: ${{ github.ref_name }}
         run: |
-          test -d pro/src || { echo "release build without the paid features"; exit 1; }
+          MODULE_VERSION=$(unzip -p picofacialdatamodule-paired.zip module.json | jq -r .Version)
+          NOTES="Headset: install with Install face tracking app.bat, or: adb install -r PicoFaceTracking.apk. The tracking adjustments unlock with a supporter licence file from Patreon. SHA-256: $(cut -d' ' -f1 PicoFaceTracking.apk.sha256)"
+          NOTES="$NOTES"$'\n\n'"PC: Pico Facial Data Module (paired) $MODULE_VERSION. In VRCFaceTracking: Module Registry, +, picofacialdatamodule-paired.zip. SHA-256: $(cut -d' ' -f1 picofacialdatamodule-paired.zip.sha256)"
           gh release create "$TAG" PicoFaceTracking.apk PicoFaceTracking.apk.sha256 \
+            picofacialdatamodule-paired.zip picofacialdatamodule-paired.zip.sha256 \
             --repo "$GITHUB_REPOSITORY" \
             --title "Pico Face Tracking ${TAG#v}" \
-            --notes "Install with Install face tracking app.bat, or: adb install -r PicoFaceTracking.apk. The tracking adjustments unlock with a supporter licence file from Patreon. SHA-256: $(cut -d' ' -f1 PicoFaceTracking.apk.sha256)"
+            --notes "$NOTES"

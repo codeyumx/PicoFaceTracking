@@ -11,7 +11,7 @@ import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
 
 /**
- * Pairing by code, headset side (docs/protocol-v2.md, "Pairing"). VRCFaceTracking's Output page shows a 6-digit code;
+ * Pairing by code, headset side (module/docs/protocol-v2.md, "Pairing"). VRCFaceTracking's Output page shows a 6-digit code;
  * the user types it on the headset. SPAKE2 in the 2048-bit MODP group of RFC 3526 turns the code into a new random
  * pairing key on both sides. The code never crosses the network, and a device that does not know it gets a single
  * guess per pairing attempt.
