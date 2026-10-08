@@ -89,16 +89,7 @@ public final class MainActivity extends Activity {
         content.addView(title);
 
         content.addView(heading("1. Tracking"));
-        tracking = new CheckBox(this);
-        tracking.setText("Face and eye tracking");
-        tracking.setTextSize(22);
-        tracking.setTypeface(Typeface.DEFAULT_BOLD);
-        tracking.setButtonDrawable(new InsetDrawable(new CheckMarkDrawable(dp(40), ON_COLOR), dp(20), 0, 0, 0));
-        // The theme's check box tint would recolour the custom mark.
-        tracking.setButtonTintList(null);
-        tracking.setBackground(toggleBackground());
-        tracking.setMinHeight(dp(84));
-        tracking.setPadding(dp(16), dp(12), dp(20), dp(12));
+        tracking = checkCard("Face and eye tracking", 22, 40, 84);
         tracking.setOnCheckedChangeListener((button, on) -> {
             if (showingState)
                 return;
@@ -111,6 +102,7 @@ public final class MainActivity extends Activity {
                 LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
         trackingLayout.setMargins(0, dp(8), 0, dp(8));
         content.addView(tracking, trackingLayout);
+        addParts(content);
 
         pauseForOtherApps = new CheckBox(this);
         pauseForOtherApps.setText("Pause while another app uses eye and face tracking, for example PICO Connect "
@@ -202,8 +194,7 @@ public final class MainActivity extends Activity {
         licenceInfo = text("", 15);
         content.addView(licenceInfo);
 
-        String features = "Eyes and mouth switches, tongue out, eye widen maximum, blink strength, smoothing and an editor "
-                + "for all 52 expressions. ";
+        String features = "Tongue out, eye widen maximum, blink strength, smoothing and an editor for all 52 expressions. ";
         if (!Paid.inBuild()) {
             licenceInfo.setText(features + "They are not part of this build: the APK on the GitHub Releases page includes "
                     + "them, unlocked by a supporter licence from Patreon.");
@@ -410,8 +401,49 @@ public final class MainActivity extends Activity {
         return heading;
     }
 
-    /** The tracking toggle: a rounded card, tinted green while tracking is on. */
-    private RippleDrawable toggleBackground() {
+    /** The eyes and mouth switches (see FaceParts); they apply to a running tracker at once. */
+    private void addParts(LinearLayout content) {
+        LinearLayout row = new LinearLayout(this);
+        row.setOrientation(LinearLayout.HORIZONTAL);
+        CheckBox eyes = checkCard("Eyes and brows", 18, 32, 64);
+        eyes.setChecked(prefs.eyesEnabled());
+        eyes.setOnCheckedChangeListener((button, on) -> {
+            prefs.setEyesEnabled(on);
+            FaceParts.reload(prefs);
+        });
+        CheckBox mouth = checkCard("Mouth, jaw, cheeks and tongue", 18, 32, 64);
+        mouth.setChecked(prefs.mouthEnabled());
+        mouth.setOnCheckedChangeListener((button, on) -> {
+            prefs.setMouthEnabled(on);
+            FaceParts.reload(prefs);
+        });
+        LinearLayout.LayoutParams left = new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.MATCH_PARENT, 1f);
+        left.setMargins(0, 0, dp(6), 0);
+        LinearLayout.LayoutParams right = new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.MATCH_PARENT, 1f);
+        right.setMargins(dp(6), 0, 0, 0);
+        row.addView(eyes, left);
+        row.addView(mouth, right);
+        content.addView(row);
+        content.addView(text("Untick a part to send it as neutral (eyes open and looking ahead, or no mouth movement) "
+                + "while the other part keeps tracking.", 15));
+    }
+
+    /** A large check box on a rounded card, tinted green while checked. */
+    private CheckBox checkCard(String label, int textSp, int markDp, int minHeightDp) {
+        CheckBox check = new CheckBox(this);
+        check.setText(label);
+        check.setTextSize(textSp);
+        check.setTypeface(Typeface.DEFAULT_BOLD);
+        check.setButtonDrawable(new InsetDrawable(new CheckMarkDrawable(dp(markDp), ON_COLOR), dp(markDp / 2), 0, 0, 0));
+        // The theme's check box tint would recolour the custom mark.
+        check.setButtonTintList(null);
+        check.setBackground(cardBackground());
+        check.setMinHeight(dp(minHeightDp));
+        check.setPadding(dp(16), dp(12), dp(20), dp(12));
+        return check;
+    }
+
+    private RippleDrawable cardBackground() {
         StateListDrawable states = new StateListDrawable();
         states.addState(new int[]{android.R.attr.state_checked}, card(0x332E7D32, ON_COLOR));
         states.addState(new int[0], card(0x14808080, 0x66808080));

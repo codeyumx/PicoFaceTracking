@@ -79,6 +79,7 @@ public final class AdbControlReceiver extends BroadcastReceiver {
         }
 
         setResult(Activity.RESULT_OK, "tracking=" + (prefs.enabled() ? "on" : "off") + " pc_address=" + (prefs.pcAddress().isEmpty() ? "auto" : prefs.pcAddress())
+                + " eyes=" + (prefs.eyesEnabled() ? "on" : "off") + " mouth=" + (prefs.mouthEnabled() ? "on" : "off")
                 + " pairing=" + (prefs.pairingKey().isEmpty() ? "address" : "key") + " licence=" + Licence.state(prefs)
                 + " adjustments=" + (Paid.inBuild() ? "in-build" : "not-in-build"), null);
     }

@@ -77,6 +77,7 @@ public final class TrackingService extends Service implements Tracker.Listener {
             PaidFeatures paid = Paid.unlocked(prefs);
             if (paid != null)
                 paid.reload(this);
+            FaceParts.reload(prefs);
             tracker = new Tracker(pc, Pairing.fromBase64(prefs.pairingKey()), prefs.pauseForOtherApps(), paid, getApplicationContext().getSystemService(WifiManager.class), this);
             trackerThread = new Thread(tracker, "tracking");
             trackerThread.start();

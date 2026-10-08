@@ -329,6 +329,7 @@ final class Tracker implements Runnable {
                     if (newFace && newEye) {
                         if (adjustments != null)
                             adjustments.apply(payload);
+                        FaceParts.current().apply(payload);
                         payload.clear();
                         int written;
                         try {

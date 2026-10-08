@@ -27,6 +27,9 @@ PICO opens it as a panel next to Virtual Desktop instead of switching apps, whic
 
 1. **Face and eye tracking**: on / off. Off stops the tracking algorithm, which releases the camera.
    The notification also has a **Turn off** button.
+   **Eyes and brows** and **Mouth, jaw, cheeks and tongue** (both on by default, free): untick one to send that part
+   as neutral while the other keeps tracking, for example eyes only. Eyes off sends open eyes looking straight ahead;
+   mouth off sends 0 for every mouth, jaw, cheek, nose and tongue expression. Changes apply at once.
 2. **Pause while another app uses eye and face tracking** (default on): before starting, the app asks the tracking
    service whether tracking already runs (`GetAlgorithmResult` `et_running` / `ft_running`). If PICO Connect or another
    app uses it, the app waits instead of sending the same face to VRCFaceTracking a second time.
@@ -41,8 +44,7 @@ PICO opens it as a panel next to Virtual Desktop instead of switching apps, whic
 Applied on the headset to every frame before it is sent, and live while tracking runs. They are in the release APK and
 unlock with a supporter licence file from Patreon (see [Open core](#open-core)).
 
-- **Quick settings**: eyes and brows on/off, mouth (jaw, cheeks, nose, tongue) on/off, tongue out on/off, eye widen
-  maximum, blink strength, smoothing. Eyes off sends open eyes looking straight ahead; switched-off expressions send 0.
+- **Quick settings**: tongue out on/off, eye widen maximum, blink strength, smoothing. Switched-off expressions send 0.
 - **All expressions**: each of PICO's 52 expressions with on/off, strength (0-200%) and maximum (0-100%). The quick
   settings are shortcuts into these values. Eye blink settings also apply to eye openness, which drives blinking in
   Pico Facial Data Module.

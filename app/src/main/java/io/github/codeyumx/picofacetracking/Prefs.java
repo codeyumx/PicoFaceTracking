@@ -61,6 +61,24 @@ final class Prefs {
         preferences.edit().putBoolean(PAUSE_FOR_OTHER_APPS, pause).apply();
     }
 
+    /** Whether eye and brow tracking is sent (see FaceParts). The key predates the free switch, so it is kept. */
+    boolean eyesEnabled() {
+        return preferences.getBoolean("eyes_enabled", true);
+    }
+
+    void setEyesEnabled(boolean enabled) {
+        preferences.edit().putBoolean("eyes_enabled", enabled).apply();
+    }
+
+    /** Whether mouth, jaw, cheek, nose and tongue tracking is sent (see FaceParts). */
+    boolean mouthEnabled() {
+        return preferences.getBoolean("mouth_enabled", true);
+    }
+
+    void setMouthEnabled(boolean enabled) {
+        preferences.edit().putBoolean("mouth_enabled", enabled).apply();
+    }
+
     /** Base64 pairing key shared with the PC (protocol version 2), or empty when paired by address. */
     String pairingKey() {
         return preferences.getString("pairing_key", "");
