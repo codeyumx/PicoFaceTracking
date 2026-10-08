@@ -1,0 +1,73 @@
+name: Build
+
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # Release tags only: add the paid tracking adjustments from the private repository (README, "Open core").
+      # Other builds, and every build in a fork, make the free app.
+      - name: Add paid features
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: actions/checkout@v4
+        with:
+          repository: codeyumx/PicoFaceTracking-pro
+          ssh-key: ${{ secrets.PRO_DEPLOY_KEY }}
+          path: pro
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.7'
+
+      - name: Build APK
+        env:
+          SIGNING_KEYSTORE_BASE64: ${{ secrets.SIGNING_KEYSTORE_BASE64 }}
+          SIGNING_PASSWORD: ${{ secrets.SIGNING_PASSWORD }}
+        run: |
+          if [ -n "$SIGNING_KEYSTORE_BASE64" ]; then
+            echo "$SIGNING_KEYSTORE_BASE64" | base64 -d > "$RUNNER_TEMP/release.p12"
+            export SIGNING_KEYSTORE="$RUNNER_TEMP/release.p12"
+            gradle --no-daemon assembleRelease
+            rm -f "$RUNNER_TEMP/release.p12"
+            cp app/build/outputs/apk/release/app-release.apk PicoFaceTracking.apk
+          else
+            # Forks and pull requests have no signing key: debug-signed build.
+            gradle --no-daemon assembleDebug
+            cp app/build/outputs/apk/debug/app-debug.apk PicoFaceTracking.apk
+          fi
+          sha256sum PicoFaceTracking.apk | tee PicoFaceTracking.apk.sha256
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: PicoFaceTracking
+          path: |
+            PicoFaceTracking.apk
+            PicoFaceTracking.apk.sha256
+
+      - name: Publish release
+        if: startsWith(github.ref, 'refs/tags/v')
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.ref_name }}
+        run: |
+          test -d pro/src || { echo "release build without the paid features"; exit 1; }
+          gh release create "$TAG" PicoFaceTracking.apk PicoFaceTracking.apk.sha256 \
+            --repo "$GITHUB_REPOSITORY" \
+            --title "Pico Face Tracking ${TAG#v}" \
+            --notes "Install with Install face tracking app.bat, or: adb install -r PicoFaceTracking.apk. The tracking adjustments unlock with a supporter licence file from Patreon. SHA-256: $(cut -d' ' -f1 PicoFaceTracking.apk.sha256)"
