@@ -10,7 +10,9 @@ namespace PicoFacialDataModule
         private const int PORT = 9030;
 
 #pragma warning disable CS8618 // Because we didn't initialize in the constructor it is WHINING!
-        private IPicoFacialModuleConnector _picoFacialModuleConnector;
+        /// <summary>Replaced when a headset pairs by code; Update then continues with the new one.</summary>
+        private volatile IPicoFacialModuleConnector _picoFacialModuleConnector;
+        private PairingListener? _pairingListener;
 
         private FaceTrackingParser _faceTrackingParser;
         private EyeTrackingParser _eyeTrackingParser;
@@ -39,17 +41,8 @@ namespace PicoFacialDataModule
                 _faceTrackingParser = new FaceTrackingParser();
                 _eyeTrackingParser = new EyeTrackingParser(_moduleSettings);
 
-                // With a pairing key: protocol version 2, which finds the paired headset on any address and encrypts the data.
-                var pairing = Pairing.Load();
-                if (pairing != null)
-                {
-                    Logger.LogInformation($"Paired by key ({Pairing.KeyPath}), using protocol version 2.");
-                    _picoFacialModuleConnector = new PairedConnector(PORT, _moduleSettings.IP, pairing);
-                }
-                else
-                {
-                    _picoFacialModuleConnector = new PicoFacialModuleConnector(PORT, _moduleSettings.IP);
-                }
+                _picoFacialModuleConnector = CreateConnector(Pairing.Load());
+                _pairingListener = new PairingListener(PORT, _moduleSettings.IP, Logger, OnPaired);
 
                 // Only claim what no other module has claimed already.
                 return (eyeAvailable && !_moduleSettings.DisableEyeTracking, expressionAvailable && !_moduleSettings.DisableFaceTracking);
@@ -77,14 +70,18 @@ namespace PicoFacialDataModule
                 return;
             }
 
+            var connector = _picoFacialModuleConnector;
             try
             {
                 Logger.LogInformation("Establishing");
-                var IP = _picoFacialModuleConnector.EstablishAsync().GetAwaiter().GetResult();
+                var IP = connector.EstablishAsync().GetAwaiter().GetResult();
 
                 Logger.LogInformation($"Connection established to: {IP.Address}");
             } catch (Exception e)
             {
+                // A headset paired by code: the old connector was closed under us.
+                if (connector != _picoFacialModuleConnector)
+                    return;
                 Goodnight(e);
             }
 
@@ -93,7 +90,7 @@ namespace PicoFacialDataModule
                 while (true)
                 {
                     var trackingResult = new TrackingResult();
-                    _picoFacialModuleConnector.ReceiveAsync(trackingResult).GetAwaiter().GetResult();
+                    connector.ReceiveAsync(trackingResult).GetAwaiter().GetResult();
 
                     if (trackingResult.FaceData.HasValue)
                         _faceTrackingParser.Parse(trackingResult.FaceData.Value);
@@ -113,13 +110,44 @@ namespace PicoFacialDataModule
                 //Noop
             } catch (Exception e)
             {
+                if (connector != _picoFacialModuleConnector)
+                    return;
                 Goodnight(e);
             }
         }
 
         public override void Teardown()
         {
+            _pairingListener?.Dispose();
             _picoFacialModuleConnector.Dispose();
+        }
+
+        /// <summary>
+        /// With a pairing key: protocol version 2, which finds the paired headset on any address and encrypts the data.
+        /// Without one: the original protocol.
+        /// </summary>
+        private IPicoFacialModuleConnector CreateConnector(Pairing? pairing)
+        {
+            if (pairing == null)
+                return new PicoFacialModuleConnector(PORT, _moduleSettings.IP);
+
+            Logger.LogInformation($"Paired by key ({Pairing.KeyPath}), using protocol version 2.");
+            return new PairedConnector(PORT, _moduleSettings.IP, pairing);
+        }
+
+        /// <summary>A headset paired by code: save the key and switch to it without a restart.</summary>
+        private void OnPaired(byte[] key)
+        {
+            var replaced = _picoFacialModuleConnector;
+            _picoFacialModuleConnector = CreateConnector(Pairing.Save(key));
+            try
+            {
+                replaced.Dispose();
+            }
+            catch (Exception)
+            {
+                // The original protocol's connector cannot send STOP before it found a headset.
+            }
         }
 
         private void Goodnight(Exception e)
