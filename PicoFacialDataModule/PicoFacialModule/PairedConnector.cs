@@ -13,6 +13,8 @@ namespace PicoFacialDataModule.PicoFacialModule
     public sealed class PairedConnector : IPicoFacialModuleConnector
     {
         private const string MULTICAST_ADDRESS = "239.255.255.250";
+        /// <summary>Windows: do not fail the next receive because an earlier datagram was answered with ICMP port unreachable.</summary>
+        private const int SIO_UDP_CONNRESET = -1744830452;
 
         private readonly UdpClient _udpClient;
         private readonly Pairing _pairing;
@@ -34,6 +36,10 @@ namespace PicoFacialDataModule.PicoFacialModule
                 EnableBroadcast = true,
                 MulticastLoopback = false,
             };
+            // The headset closes its port while it pairs or restarts tracking; a STOP or PONG sent then must not end
+            // the discovery with a connection reset.
+            if (OperatingSystem.IsWindows())
+                _udpClient.Client.IOControl(SIO_UDP_CONNRESET, new byte[] { 0 }, null);
 
             _port = port;
             _ip = IP;
@@ -148,14 +154,19 @@ namespace PicoFacialDataModule.PicoFacialModule
         /// </summary>
         public void Dispose()
         {
-            if (_session != null && _headset != null)
+            try
             {
-                var stop = _session.Seal(Pairing.Stop);
-                _udpClient.Send(stop, stop.Length, _headset);
+                if (_session != null && _headset != null)
+                {
+                    var stop = _session.Seal(Pairing.Stop);
+                    _udpClient.Send(stop, stop.Length, _headset);
+                }
             }
-
-            _session?.Dispose();
-            _udpClient.Dispose();
+            finally
+            {
+                _session?.Dispose();
+                _udpClient.Dispose();
+            }
         }
     }
 }

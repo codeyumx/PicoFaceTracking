@@ -135,7 +135,10 @@ namespace PicoFacialDataModule
             return new PairedConnector(PORT, _moduleSettings.IP, pairing);
         }
 
-        /// <summary>A headset paired by code: save the key and switch to it without a restart.</summary>
+        /// <summary>
+        /// A headset paired by code: save the key and switch to it without a restart. Disposing the old connector
+        /// ends its pending EstablishAsync or ReceiveAsync, so Update returns and continues with the new one.
+        /// </summary>
         private void OnPaired(byte[] key)
         {
             var replaced = _picoFacialModuleConnector;
@@ -144,9 +147,10 @@ namespace PicoFacialDataModule
             {
                 replaced.Dispose();
             }
-            catch (Exception)
+            catch (Exception e)
             {
-                // The original protocol's connector cannot send STOP before it found a headset.
+                // The socket is closed anyway; only the STOP to the headset failed.
+                Logger.LogDebug($"Closing the previous connection: {e.Message}");
             }
         }
 

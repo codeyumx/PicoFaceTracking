@@ -146,12 +146,20 @@ namespace PicoFacialDataModule.PicoFacialModule
         }
 
         /// <summary>
-        /// Stops and closes the tracking on the client.
+        /// Stops the tracking on the client, if one was found, and closes the socket.
         /// </summary>
         public void Dispose()
         {
-            _udpClient!.Send(Encoding.UTF8.GetBytes(STOP), _client);
-            _udpClient.Dispose();
+            try
+            {
+                if (_client != null)
+                    _udpClient!.Send(Encoding.UTF8.GetBytes(STOP), _client);
+            }
+            finally
+            {
+                // Always release the port, also before a headset was found: a pending EstablishAsync then ends.
+                _udpClient!.Dispose();
+            }
         }
 
         private bool HasTrackingData(byte[] buffer)
