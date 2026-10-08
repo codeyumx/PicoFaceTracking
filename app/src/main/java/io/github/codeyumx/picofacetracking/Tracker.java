@@ -191,6 +191,10 @@ final class Tracker implements Runnable {
                     continue;
                 }
 
+                // The paired module asks every 2 seconds whether a headset wants to pair; only the pairing screen answers.
+                if (Pairing.type(buffer, packet.getLength()) == PairingExchange.DISCOVER)
+                    continue;
+
                 if (pairing != null) {
                     // Paired by key: only version 2 is answered, so nobody can fall back to the unauthenticated protocol.
                     byte[] pcNonce = pairing.verifyDiscover(buffer, packet.getLength());

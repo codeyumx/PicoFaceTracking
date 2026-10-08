@@ -3,7 +3,12 @@ package io.github.codeyumx.picofacetracking;
 import android.app.Activity;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.content.res.ColorStateList;
 import android.graphics.Typeface;
+import android.graphics.drawable.GradientDrawable;
+import android.graphics.drawable.InsetDrawable;
+import android.graphics.drawable.RippleDrawable;
+import android.graphics.drawable.StateListDrawable;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -18,7 +23,6 @@ import android.widget.LinearLayout;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.ScrollView;
-import android.widget.Switch;
 import android.widget.TextView;
 
 import java.io.IOException;
@@ -36,6 +40,7 @@ public final class MainActivity extends Activity {
             "com.picovr.permission.FACE_TRACKING",
     };
     private static final long REFRESH_MS = 500;
+    private static final int ON_COLOR = 0xFF2E7D32;
     private static final int IMPORT_LICENCE = 1;
     /** Licence files are a few hundred bytes. */
     private static final int MAX_LICENCE_BYTES = 4096;
@@ -50,7 +55,7 @@ public final class MainActivity extends Activity {
     };
 
     private Prefs prefs;
-    private Switch tracking;
+    private CheckBox tracking;
     private EditText pcAddress;
     private CheckBox startAtBoot;
     private CheckBox pauseForOtherApps;
@@ -84,9 +89,16 @@ public final class MainActivity extends Activity {
         content.addView(title);
 
         content.addView(heading("1. Tracking"));
-        tracking = new Switch(this);
+        tracking = new CheckBox(this);
         tracking.setText("Face and eye tracking");
-        tracking.setTextSize(18);
+        tracking.setTextSize(22);
+        tracking.setTypeface(Typeface.DEFAULT_BOLD);
+        tracking.setButtonDrawable(new InsetDrawable(new CheckMarkDrawable(dp(40), ON_COLOR), dp(20), 0, 0, 0));
+        // The theme's check box tint would recolour the custom mark.
+        tracking.setButtonTintList(null);
+        tracking.setBackground(toggleBackground());
+        tracking.setMinHeight(dp(84));
+        tracking.setPadding(dp(16), dp(12), dp(20), dp(12));
         tracking.setOnCheckedChangeListener((button, on) -> {
             if (showingState)
                 return;
@@ -95,7 +107,10 @@ public final class MainActivity extends Activity {
             else
                 turnOff();
         });
-        content.addView(tracking);
+        LinearLayout.LayoutParams trackingLayout = new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+        trackingLayout.setMargins(0, dp(8), 0, dp(8));
+        content.addView(tracking, trackingLayout);
 
         pauseForOtherApps = new CheckBox(this);
         pauseForOtherApps.setText("Pause while another app uses eye and face tracking, for example PICO Connect "
@@ -393,6 +408,22 @@ public final class MainActivity extends Activity {
         heading.setTypeface(Typeface.DEFAULT_BOLD);
         heading.setPadding(0, dp(20), 0, dp(4));
         return heading;
+    }
+
+    /** The tracking toggle: a rounded card, tinted green while tracking is on. */
+    private RippleDrawable toggleBackground() {
+        StateListDrawable states = new StateListDrawable();
+        states.addState(new int[]{android.R.attr.state_checked}, card(0x332E7D32, ON_COLOR));
+        states.addState(new int[0], card(0x14808080, 0x66808080));
+        return new RippleDrawable(ColorStateList.valueOf(0x33FFFFFF), states, null);
+    }
+
+    private GradientDrawable card(int fill, int outline) {
+        GradientDrawable card = new GradientDrawable();
+        card.setColor(fill);
+        card.setStroke(dp(2), outline);
+        card.setCornerRadius(dp(16));
+        return card;
     }
 
     private TextView text(String value, int sizeSp) {
