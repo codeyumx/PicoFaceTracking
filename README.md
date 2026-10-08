@@ -12,8 +12,8 @@ It works with either VRCFaceTracking module:
 
 - [Pico Facial Data Module](https://github.com/thoricelli/PicoFacialDataModule) 0.3 by thoricelli: original protocol,
   the PC is recognised by its address.
-- [Pico Facial Data Module (paired)](https://github.com/codeyumx/PicoFacialDataModule/releases/tag/v0.4-paired.1):
-  pairing by key (protocol version 2, below).
+- [Pico Facial Data Module (paired)](https://github.com/codeyumx/PicoFacialDataModule/releases/tag/v0.5-paired.1):
+  pairing by code (protocol version 2, below).
 
 Download the APK from [Releases](https://github.com/codeyumx/PicoFaceTracking/releases). Everything is free except the
 [tracking adjustments](#tracking-adjustments-supporters), which unlock with a supporter licence from Patreon.
@@ -49,25 +49,23 @@ unlock with a supporter licence file from Patreon (see [Open core](#open-core)).
 
 PICO's own switches (Settings > LAB, `key_et_enable` / `key_ft_enable`) cannot be changed by a sideloaded app.
 
-## Pairing by key (protocol version 2, optional)
+## Pairing by code (protocol version 2, optional)
 
-With a pairing key the app answers only a PC that proves it holds the key, from any address, and encrypts the frames
-(AES-256-GCM). The key is created on the PC by the install script and copied to the headset over USB:
+Once paired by code, the app answers only a PC that proves it holds the pairing key, from any address, and encrypts the
+frames (AES-256-GCM). No cable and no PC software besides VRCFaceTracking:
 
-```
-adb shell am broadcast -n io.github.codeyumx.picofacetracking/.AdbControlReceiver --es pairing_key <Base64 key>
-```
+1. In the app, press **Pair by code**.
+2. VRCFaceTracking, with Pico Facial Data Module (paired), shows
+   `Pairing code for <headset> (<address>): 123 456` on its Output page.
+3. Type the code in the app and press **Pair**. Both sides now hold a new random key; the module switches to it at
+   once and saves it in `%APPDATA%\PicoFacialData\pairing-key.txt`.
 
-The PC side is the paired build of Pico Facial Data Module (github.com/codeyumx/PicoFacialDataModule, branch
-`paired-protocol`), which reads the same key from `%APPDATA%\PicoFacialData\pairing-key.txt`. Without a key the app
-speaks the original protocol. The protocol is described in [docs/protocol-v2.md](docs/protocol-v2.md).
+The code never crosses the network: SPAKE2 turns it into the key, and someone who does not know it gets one guess per
+code. **Pair again by code** makes a new key and replaces the old one on both sides. Tracking pauses while the app waits
+for a code (at most 5 minutes). The protocol is described in [docs/protocol-v2.md](docs/protocol-v2.md).
 
-Pairing by key is optional. The install script asks (key or address). To turn it off later, press **Remove pairing key**
-in the app, or clear it over adb; the app then pairs by address again and works with thoricelli's original module:
-
-```
-adb shell am broadcast -n io.github.codeyumx.picofacetracking/.AdbControlReceiver --es pairing_key "''"
-```
+To turn it off, press **Remove pairing key**: the app pairs by address again and works with thoricelli's original
+module. Without a key the app speaks the original protocol.
 
 ## VRCFaceTracking with Pico4SAFTExtTrackingModule installed too
 
