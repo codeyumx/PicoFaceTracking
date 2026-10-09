@@ -8,11 +8,15 @@ namespace PicoFacialDataModule
     public class PicoFacialDataModule : ExtTrackingModule
     {
         private const int PORT = 9030;
+        /// <summary>How long Initialize waits for the headset before leaving eye and face tracking to other modules.</summary>
+        private static readonly TimeSpan HeadsetWaitTime = TimeSpan.FromSeconds(180);
 
 #pragma warning disable CS8618 // Because we didn't initialize in the constructor it is WHINING!
         /// <summary>Replaced when a headset pairs by code; Update then continues with the new one.</summary>
         private volatile IPicoFacialModuleConnector _picoFacialModuleConnector;
         private PairingListener? _pairingListener;
+        /// <summary>The connector Initialize already established; the first Update receives from it right away.</summary>
+        private IPicoFacialModuleConnector? _establishedConnector;
 
         private FaceTrackingParser _faceTrackingParser;
         private EyeTrackingParser _eyeTrackingParser;
@@ -41,14 +45,32 @@ namespace PicoFacialDataModule
                 _faceTrackingParser = new FaceTrackingParser();
                 _eyeTrackingParser = new EyeTrackingParser(_moduleSettings);
 
+                // Only claim what no other module has claimed already.
+                var claimEye = eyeAvailable && !_moduleSettings.DisableEyeTracking;
+                var claimExpression = expressionAvailable && !_moduleSettings.DisableFaceTracking;
+                if (!claimEye && !claimExpression)
+                    return (false, false);
+
                 _picoFacialModuleConnector = CreateConnector(Pairing.Load());
                 _pairingListener = new PairingListener(PORT, _moduleSettings.IP, Logger, OnPaired);
 
-                // Only claim what no other module has claimed already.
-                return (eyeAvailable && !_moduleSettings.DisableEyeTracking, expressionAvailable && !_moduleSettings.DisableFaceTracking);
+                Logger.LogInformation($"Waiting up to {HeadsetWaitTime.TotalSeconds:0} seconds for the headset.");
+                var headset = HeadsetWait.Establish(() => _picoFacialModuleConnector, HeadsetWaitTime);
+                if (headset == null)
+                {
+                    Logger.LogWarning($"No headset answered within {HeadsetWaitTime.TotalSeconds:0} seconds, so eye and face tracking stay free for other modules. " +
+                        "To use the PICO: turn on tracking in the Pico Face Tracking app, then restart VRCFaceTracking.");
+                    Teardown();
+                    return (false, false);
+                }
+
+                Logger.LogInformation($"Connection established to: {headset.Address}");
+                _establishedConnector = _picoFacialModuleConnector;
+                return (claimEye, claimExpression);
             } catch (Exception e)
             {
                 Logger.LogCritical($"Initialization failed with the following message: {e.Message}\n Stacktrace:\n{e.StackTrace}");
+                Teardown();
                 return (false, false);
             }
         }
@@ -73,10 +95,14 @@ namespace PicoFacialDataModule
             var connector = _picoFacialModuleConnector;
             try
             {
-                Logger.LogInformation("Establishing");
-                var IP = connector.EstablishAsync().GetAwaiter().GetResult();
+                if (connector != _establishedConnector)
+                {
+                    Logger.LogInformation("Establishing");
+                    var IP = connector.EstablishAsync().GetAwaiter().GetResult();
 
-                Logger.LogInformation($"Connection established to: {IP.Address}");
+                    Logger.LogInformation($"Connection established to: {IP.Address}");
+                }
+                _establishedConnector = null;
             } catch (Exception e)
             {
                 // A headset paired by code: the old connector was closed under us.
@@ -119,7 +145,8 @@ namespace PicoFacialDataModule
         public override void Teardown()
         {
             _pairingListener?.Dispose();
-            _picoFacialModuleConnector.Dispose();
+            _pairingListener = null;
+            _picoFacialModuleConnector?.Dispose();
         }
 
         /// <summary>

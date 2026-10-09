@@ -1,6 +1,6 @@
 {
   "ModuleId": "168d44d5-bbb7-4e86-8ae5-732047311d43",
-  "Version": "0.5-paired.3",
+  "Version": "0.5-paired.4",
   "AuthorName": "thoricelli, codeyumx",
   "ModuleName": "Pico Facial Data Module (paired)",
   "ModuleDescription": "Pico Facial Data Module with pairing by code: finds the paired PICO headset when the PC address changes and encrypts the tracking data.",

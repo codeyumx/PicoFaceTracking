@@ -9,6 +9,15 @@ A VRCFaceTracking module that connects to the `picofacialdatadaemon` via UDP.
 3. Select the ZIP you downloaded.
 4. Run the `picofacialdatadaemon`, or install it via Magisk.
 
+### Using another headset
+
+VRCFaceTracking gives eye and face tracking to the first module that claims them at start, and switching a module off
+on its page does not hand them to another one. So this module waits up to 180 seconds for the headset and claims eye
+and face tracking only when it answers. When no headset answers (for example the PICO is off and you use a Steam Frame),
+the module stops and leaves them to the other headset's module. To switch back to the PICO, turn on tracking in the
+Pico Face Tracking app, then restart VRCFaceTracking. Pairing by code also needs the module running: pair within those
+180 seconds or while the headset is connected.
+
 ### Pairing by code (protocol version 2)
 
 By default the module finds the daemon with an unauthenticated discovery request, and anyone on the network can ask the
