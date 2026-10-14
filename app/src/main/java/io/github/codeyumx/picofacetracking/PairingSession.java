@@ -258,7 +258,7 @@ final class PairingSession implements Runnable {
                 return "Type the 6-digit pairing code from VRCFaceTracking's Output page.";
         }
         return "Looking for VRCFaceTracking on your network. On the PC, run VRCFaceTracking with "
-                + "\"Pico Facial Data Module (paired)\"; its Output page then shows a 6-digit pairing code.";
+                + "\"Pico 4 Face Tracking\"; its Output page then shows a 6-digit pairing code.";
     }
 
     private String headsetName() {

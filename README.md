@@ -12,12 +12,13 @@ It works with either VRCFaceTracking module:
 
 - [Pico Facial Data Module](https://github.com/thoricelli/PicoFacialDataModule) 0.3 by thoricelli: original protocol,
   the PC is recognised by its address.
-- **Pico Facial Data Module (paired)**, in [`module/`](module) of this repository: thoricelli's module plus pairing by
-  code (protocol version 2, below). Each release has it as `picofacialdatamodule-paired.zip`.
+- **Pico 4 Face Tracking**, in [`module/`](module) of this repository: thoricelli's module plus pairing by code
+  (protocol version 2, below). Each release has it as `Pico4FaceTracking-VRCFT.zip`.
 
 Download the APK and the module from [Releases](https://github.com/codeyumx/PicoFaceTracking/releases). Everything is
-free except the [tracking adjustments](#tracking-adjustments-supporters), which unlock with a supporter licence from
-Patreon.
+free except the [tracking adjustments](#tracking-adjustments-supporters), which need a supporter licence. Licences are
+not available yet: if the app gets enough interest, more settings will follow, and a Patreon will give supporters
+access to them.
 
 ## Panel next to the running VR app
 
@@ -43,7 +44,7 @@ PICO opens it as a panel next to Virtual Desktop instead of switching apps, whic
 ## Tracking adjustments (supporters)
 
 Applied on the headset to every frame before it is sent, and live while tracking runs. They are in the release APK and
-unlock with a supporter licence file from Patreon (see [Open core](#open-core)).
+unlock with a supporter licence file, which is not available yet (see [Open core](#open-core)).
 
 - **Quick settings**: tongue out on/off, eye widen maximum, blink strength, smoothing. Switched-off expressions send 0.
 - **All expressions**: each of PICO's 52 expressions with on/off, strength (0-200%) and maximum (0-100%). The quick
@@ -58,7 +59,7 @@ Once paired by code, the app answers only a PC that proves it holds the pairing 
 frames (AES-256-GCM). No cable and no PC software besides VRCFaceTracking:
 
 1. In the app, press **Pair by code**.
-2. VRCFaceTracking, with Pico Facial Data Module (paired), shows
+2. VRCFaceTracking, with the Pico 4 Face Tracking module, shows
    `Pairing code for <headset> (<address>): 123 456` on its Output page.
 3. Type the code in the app and press **Pair**. Both sides now hold a new random key; the module switches to it at
    once and saves it in `%APPDATA%\PicoFacialData\pairing-key.txt`.
@@ -73,8 +74,8 @@ module. Without a key the app speaks the original protocol.
 ## VRCFaceTracking with Pico4SAFTExtTrackingModule installed too
 
 Both modules can stay installed. Pico4SAFTExtTrackingModule only initialises while PICO Connect, Streaming Assistant or
-Business Streaming runs on the PC (`StreamerValidity`), and Pico Facial Data Module always initialises, so with Virtual
-Desktop the tracking comes through Pico Facial Data Module. When you stream with PICO Connect instead, setting 2 keeps
+Business Streaming runs on the PC (`StreamerValidity`), and Pico 4 Face Tracking always initialises, so with Virtual
+Desktop the tracking comes through Pico 4 Face Tracking. When you stream with PICO Connect instead, setting 2 keeps
 this app from sending a second copy.
 
 ## Open core
@@ -89,7 +90,7 @@ public key and checks it on the headset, offline:
 
 ```
 Pico Face Tracking licence
-licensee: Patreon supporters
+licensee: Supporters
 expires: 2026-11-30
 signature: MEUCIQ...
 ```
@@ -120,8 +121,8 @@ adb shell am broadcast -n io.github.codeyumx.picofacetracking/.AdbControlReceive
 An empty `pc_address` forgets the paired PC.
 
 `AdbControlReceiver` is protected by `android.permission.DUMP`, which the adb shell holds and normal apps cannot get,
-so other apps on the headset cannot start tracking or redirect it. On the PC, install the Pico Facial Data Module in
-VRCFaceTracking: Module Registry, **+**, `picofacialdatamodule-paired.zip` from the release.
+so other apps on the headset cannot start tracking or redirect it. On the PC, install the Pico 4 Face Tracking module in
+VRCFaceTracking: Module Registry, **+**, `Pico4FaceTracking-VRCFT.zip` from the release.
 
 ## How it works
 
@@ -152,7 +153,7 @@ merge cleanly; the root `.gitmodules` and `.github/workflows/build.yml` are the 
 
 GitHub Actions builds the free app (and runs its unit tests) and the PC module (and runs its tests) on every push to
 `main` and on pull requests. A `v*` tag builds the release APK with the paid features (checked out from the private
-repository with the `PRO_DEPLOY_KEY` deploy key) and publishes the APK and `picofacialdatamodule-paired.zip` as a
+repository with the `PRO_DEPLOY_KEY` deploy key) and publishes the APK and `Pico4FaceTracking-VRCFT.zip` as a
 GitHub release. Signing uses two repository secrets: `SIGNING_KEYSTORE_BASE64` (a PKCS#12 keystore with key alias `picofacetracking`) and `SIGNING_PASSWORD`.
 
 Clone with `git clone --recursive` (the module builds against the `module/VRCFaceTracking` submodule).

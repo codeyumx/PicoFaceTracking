@@ -16,7 +16,7 @@ import java.time.format.DateTimeParseException;
  * the paid tracking adjustments. Format:
  * <pre>
  * Pico Face Tracking licence
- * licensee: Patreon supporters
+ * licensee: Supporters
  * expires: 2026-11-30
  * signature: (Base64 DER signature)
  * </pre>

@@ -92,16 +92,16 @@ jobs:
       - name: Zip
         shell: pwsh
         run: |
-          Compress-Archive -Path "PicoFacialDataModule/bin/Release/net10.0/PicoFacialDataModule.dll", "module.json" -DestinationPath picofacialdatamodule-paired.zip -Force
-          (Get-FileHash picofacialdatamodule-paired.zip -Algorithm SHA256).Hash.ToLower() + "  picofacialdatamodule-paired.zip" | Out-File -Encoding ascii picofacialdatamodule-paired.zip.sha256
-          Get-Content picofacialdatamodule-paired.zip.sha256
+          Compress-Archive -Path "PicoFacialDataModule/bin/Release/net10.0/PicoFacialDataModule.dll", "module.json" -DestinationPath Pico4FaceTracking-VRCFT.zip -Force
+          (Get-FileHash Pico4FaceTracking-VRCFT.zip -Algorithm SHA256).Hash.ToLower() + "  Pico4FaceTracking-VRCFT.zip" | Out-File -Encoding ascii Pico4FaceTracking-VRCFT.zip.sha256
+          Get-Content Pico4FaceTracking-VRCFT.zip.sha256
 
       - uses: actions/upload-artifact@v4
         with:
-          name: PicoFacialDataModule
+          name: Pico4FaceTracking-VRCFT
           path: |
-            module/picofacialdatamodule-paired.zip
-            module/picofacialdatamodule-paired.zip.sha256
+            module/Pico4FaceTracking-VRCFT.zip
+            module/Pico4FaceTracking-VRCFT.zip.sha256
 
   release:
     if: startsWith(github.ref, 'refs/tags/v')
@@ -117,11 +117,11 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           TAG: ${{ github.ref_name }}
         run: |
-          MODULE_VERSION=$(unzip -p picofacialdatamodule-paired.zip module.json | jq -r .Version)
-          NOTES="Headset: install with Install face tracking app.bat, or: adb install -r PicoFaceTracking.apk. The tracking adjustments unlock with a supporter licence file from Patreon. SHA-256: $(cut -d' ' -f1 PicoFaceTracking.apk.sha256)"
-          NOTES="$NOTES"$'\n\n'"PC: Pico Facial Data Module (paired) $MODULE_VERSION. In VRCFaceTracking: Module Registry, +, picofacialdatamodule-paired.zip. SHA-256: $(cut -d' ' -f1 picofacialdatamodule-paired.zip.sha256)"
+          MODULE_VERSION=$(unzip -p Pico4FaceTracking-VRCFT.zip module.json | jq -r .Version)
+          NOTES="Headset: install with Install face tracking app.bat, or: adb install -r PicoFaceTracking.apk. The tracking adjustments need a supporter licence, which is not available yet. SHA-256: $(cut -d' ' -f1 PicoFaceTracking.apk.sha256)"
+          NOTES="$NOTES"$'\n\n'"PC: Pico 4 Face Tracking module $MODULE_VERSION. In VRCFaceTracking: Module Registry, +, Pico4FaceTracking-VRCFT.zip. SHA-256: $(cut -d' ' -f1 Pico4FaceTracking-VRCFT.zip.sha256)"
           gh release create "$TAG" PicoFaceTracking.apk PicoFaceTracking.apk.sha256 \
-            picofacialdatamodule-paired.zip picofacialdatamodule-paired.zip.sha256 \
+            Pico4FaceTracking-VRCFT.zip Pico4FaceTracking-VRCFT.zip.sha256 \
             --repo "$GITHUB_REPOSITORY" \
             --title "Pico Face Tracking ${TAG#v}" \
             --notes "$NOTES"

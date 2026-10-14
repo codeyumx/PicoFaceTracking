@@ -156,7 +156,7 @@ public final class MainActivity extends Activity {
         content.addView(startAtBoot);
 
         content.addView(heading("On the PC"));
-        content.addView(text("Install \"Pico Facial Data Module (paired)\" in VRCFaceTracking, which can pair by code, or thoricelli's "
+        content.addView(text("Install \"Pico 4 Face Tracking\" in VRCFaceTracking, which can pair by code, or thoricelli's "
                 + "Pico Facial Data Module, which pairs by address. Pico4SAFTExtTrackingModule can stay installed: "
                 + "it only starts while PICO Connect or Streaming Assistant runs on the PC. "
                 + "Tracking only flows while the headset is worn.", 15));
@@ -197,16 +197,16 @@ public final class MainActivity extends Activity {
         String features = "Tongue out, eye widen maximum, blink strength, smoothing and an editor for all 52 expressions. ";
         if (!Paid.inBuild()) {
             licenceInfo.setText(features + "They are not part of this build: the APK on the GitHub Releases page includes "
-                    + "them, unlocked by a supporter licence from Patreon.");
+                    + "them, unlocked by a supporter licence. Licences are not available yet.");
             return;
         }
 
         Licence licence = Licence.saved(prefs);
         if (licence == null)
-            licenceInfo.setText(features + "They unlock with a supporter licence file from Patreon. Put the .licence file "
-                    + "next to Install face tracking app.bat and run it, or import it here.");
+            licenceInfo.setText(features + "They unlock with a supporter licence file, which is not available yet. If you "
+                    + "have one, put the .licence file next to Install face tracking app.bat and run it, or import it here.");
         else if (licence.expired())
-            licenceInfo.setText("Your licence (" + licence.describe() + ") has ended. Import a new licence file from Patreon.");
+            licenceInfo.setText("Your licence (" + licence.describe() + ") has ended. Import a new licence file.");
         else
             licenceInfo.setText("Unlocked, " + licence.describe() + ". Thank you for supporting the app.");
 
@@ -379,7 +379,7 @@ public final class MainActivity extends Activity {
         pairingInfo.setText(keyed
                 ? "Paired by key. The PC's address can change, and the data is encrypted. The address below is not used."
                 : "Paired by address (no pairing key). Pairing by code adds encryption and keeps working when the PC's "
-                + "address changes; it needs \"Pico Facial Data Module (paired)\" in VRCFaceTracking.");
+                + "address changes; it needs \"Pico 4 Face Tracking\" in VRCFaceTracking.");
         showPairing(keyed);
         showingState = false;
     }

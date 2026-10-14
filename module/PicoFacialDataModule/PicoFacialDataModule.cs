@@ -29,7 +29,7 @@ namespace PicoFacialDataModule
         {
             try
             {
-                ModuleInformation.Name = "Pico 4 P/E Facial Tracking Daemon";
+                ModuleInformation.Name = "Pico 4 Face Tracking";
                 ModuleInformation.Active = true;
 
                 var stream = GetType().Assembly.GetManifestResourceStream("PicoFacialDataModule.Assets.icon.png");
