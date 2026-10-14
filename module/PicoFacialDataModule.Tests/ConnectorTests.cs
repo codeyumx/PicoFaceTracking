@@ -19,7 +19,7 @@ namespace PicoFacialDataModule.Tests
         {
             var port = FreePort();
             var connector = new PicoFacialModuleConnector(port, Nobody);
-            var search = connector.EstablishAsync();
+            var search = connector.EstablishAsync(CancellationToken.None);
             await Task.Delay(300);
 
             connector.Dispose();

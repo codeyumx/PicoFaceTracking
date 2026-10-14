@@ -10,6 +10,11 @@ namespace PicoFacialDataModule
         /// When defined, it will not send a multicast but instead connect directly.
         /// </summary>
         public string? IP { get; set; }
+        /// <summary>
+        /// Claim eye and face tracking even when no headset answers while VRCFaceTracking starts. Off: another module,
+        /// for example one for a different headset, gets them instead.
+        /// </summary>
+        public bool ClaimWithoutHeadset { get; set; }
         public TrackingSettings TrackingSettings { get; set; } = new();
     }
 

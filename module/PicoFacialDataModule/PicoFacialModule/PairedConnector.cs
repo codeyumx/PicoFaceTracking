@@ -48,8 +48,9 @@ namespace PicoFacialDataModule.PicoFacialModule
 
         /// <summary>
         /// Sends a signed DISCOVER every 2 seconds until the headset answers with a valid HELLO, then confirms with START.
+        /// Ends with <see cref="OperationCanceledException"/> once <paramref name="cancellationToken"/> is cancelled.
         /// </summary>
-        public async Task<IPEndPoint> EstablishAsync()
+        public async Task<IPEndPoint> EstablishAsync(CancellationToken cancellationToken)
         {
             _session?.Dispose();
             _session = null;
@@ -78,12 +79,13 @@ namespace PicoFacialDataModule.PicoFacialModule
                     await _udpClient.SendAsync(discover, discover.Length, endpoint);
                 }
 
-                using var cancellationToken = new CancellationTokenSource(TimeSpan.FromSeconds(2));
+                using var round = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+                round.CancelAfter(TimeSpan.FromSeconds(2));
                 try
                 {
                     while (true)
                     {
-                        var result = await _udpClient.ReceiveAsync(cancellationToken.Token);
+                        var result = await _udpClient.ReceiveAsync(round.Token);
                         if (!_pairing.VerifyHello(result.Buffer, pcNonce, out var headsetNonce))
                             continue;
 
@@ -95,7 +97,7 @@ namespace PicoFacialDataModule.PicoFacialModule
                         return _headset;
                     }
                 }
-                catch (OperationCanceledException)
+                catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
                 {
                     // No headset answered; discover again with a fresh nonce.
                 }

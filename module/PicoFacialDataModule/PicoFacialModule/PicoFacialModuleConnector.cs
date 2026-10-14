@@ -89,9 +89,10 @@ namespace PicoFacialDataModule.PicoFacialModule
         }
 
         /// <summary>
-        /// Finds and returns a peer that wants to send tracking data.
+        /// Finds and returns a peer that wants to send tracking data. Asks again every 2 seconds until one answers or
+        /// <paramref name="cancellationToken"/> is cancelled.
         /// </summary>
-        public async Task<IPEndPoint> EstablishAsync()
+        public async Task<IPEndPoint> EstablishAsync(CancellationToken cancellationToken)
         {
             IPEndPoint endpoint = new IPEndPoint(
                 string.IsNullOrEmpty(_ip) ? IPAddress.Parse(MULTICAST_ADDRESS) : IPAddress.Parse(_ip),
@@ -107,7 +108,8 @@ namespace PicoFacialDataModule.PicoFacialModule
 
             while (true)
             {
-                using var cancellationToken = new CancellationTokenSource(TimeSpan.FromSeconds(2));
+                using var round = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+                round.CancelAfter(TimeSpan.FromSeconds(2));
 
                 foreach (var networkIP in networkIPs)
                 {
@@ -123,17 +125,14 @@ namespace PicoFacialDataModule.PicoFacialModule
 
                 try
                 {
-                    var result = await _udpClient!.ReceiveAsync(cancellationToken.Token);
+                    var result = await _udpClient!.ReceiveAsync(round.Token);
 
                     receiver = result.RemoteEndPoint;
                     reply = result.Buffer;
                 }
-                catch (OperationCanceledException)
+                catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
                 {
-
-                }
-                catch (Exception) {
-                    throw;
+                    // Nobody answered this round; ask again.
                 }
 
                 if (reply != null)

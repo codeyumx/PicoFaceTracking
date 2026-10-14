@@ -25,6 +25,7 @@ namespace PicoFacialDataModule.PicoFacialModule
         private readonly Action<byte[]> _onPaired;
         private readonly CancellationTokenSource _stop = new();
         private readonly Task _task;
+        private readonly TaskCompletionSource _offered = new(TaskCreationOptions.RunContinuationsAsynchronously);
 
         private PairingExchange? _attempt;
         private IPEndPoint? _attemptHeadset;
@@ -51,6 +52,9 @@ namespace PicoFacialDataModule.PicoFacialModule
             _onPaired = onPaired;
             _task = Task.Run(RunAsync);
         }
+
+        /// <summary>Completes once a headset on the local network offers to pair, so a headset is there.</summary>
+        public Task HeadsetOffered => _offered.Task;
 
         private async Task RunAsync()
         {
@@ -107,6 +111,7 @@ namespace PicoFacialDataModule.PicoFacialModule
                 case PairingExchange.Offer:
                     if (!PairingExchange.TryParseOffer(message, out var headsetNonce, out var headsetName))
                         return;
+                    _offered.TrySetResult();
                     if (_attempt != null && from.Equals(_attemptHeadset) && headsetNonce.AsSpan().SequenceEqual(_attempt.HeadsetNonce))
                     {
                         // The headset still waits for the code; it may have missed the START.

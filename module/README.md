@@ -11,6 +11,19 @@ thoricelli's Pico Facial Data Module and also works with thoricelli's `picofacia
 3. Select the ZIP you downloaded.
 4. On the headset, turn tracking on in the Pico Face Tracking app.
 
+The module claims eye and face tracking only when a headset answers within 5 seconds of VRCFaceTracking starting
+(also a headset waiting on its pairing screen). If tracking was off then, the log says "No PICO headset answered";
+turn it on and restart VRCFaceTracking. Set `ClaimWithoutHeadset` to claim them regardless, as older versions did.
+
+### Switching to another headset
+
+VRCFaceTracking gives eye and face tracking to the first module that claims them when it starts, and does not move
+them to another module later. With the PICO off or disconnected when VRCFaceTracking starts, this module steps aside,
+so a module for another headset (for example SteamLink for the Steam Frame) gets them. Switching this module off on
+VRCFaceTracking's home page stops the PICO's tracking, but the other module only takes over after a restart of
+VRCFaceTracking. If the PICO stops sending while this module has the tracking, the face and eyes go neutral instead of
+freezing on the last frame.
+
 ### Pairing by code (protocol version 2)
 
 By default the module finds the headset with an unauthenticated discovery request, and anyone on the network can ask the
@@ -34,6 +47,7 @@ Settings can be found at: `%appdata%/VRCFaceTracking/CustomLibs/168d44d5-bbb7-4e
 | DisableEyeTracking                   | Disables eye tracking in the module only.                                                                                                                                                                              | `false`       |
 | DisableFaceTracking                  | Disables face tracking in the module only.                                                                                                                                                                             | `false`       |
 |IP| Specifies the IP address of the PICO headset on your network (or outside of it).<br>Skips the multicast discovery process if set.| `null`
+| ClaimWithoutHeadset                  | Claims eye and face tracking even when no headset answers while VRCFaceTracking starts, so no other module gets them.                                                                                                 | `false`       |
 | eyePupilDilationEyeOpennessThreshold | This threshold will stop eye dilation tracking below a certain eye openness. | `0.8`         |
 
 ### Babble
