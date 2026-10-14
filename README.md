@@ -137,12 +137,10 @@ Without a pairing key the data is not encrypted; use a network you trust. With a
 
 `module/` is a [git subtree](https://git-scm.com/book/en/v2/Git-Tools-Advanced-Merging#_subtree_merge) of
 [thoricelli/PicoFacialDataModule](https://github.com/thoricelli/PicoFacialDataModule) with pairing by code added
-(MIT, thoricelli; see `module/LICENSE`). Its full history is kept, so thoricelli's changes merge in, and changes made
-here can go back to thoricelli as a pull request:
+(MIT, thoricelli; see `module/LICENSE`). Its full history is kept, so thoricelli's changes merge in:
 
 ```
 git subtree pull --prefix=module https://github.com/thoricelli/PicoFacialDataModule main
-git subtree push --prefix=module https://github.com/codeyumx/PicoFacialDataModule <branch>   # then open a pull request
 ```
 
 Keep commits that change `module/` separate from app commits, so a split carries no app changes. Files under
