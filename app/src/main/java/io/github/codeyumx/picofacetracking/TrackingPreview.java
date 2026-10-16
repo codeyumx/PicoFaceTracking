@@ -17,11 +17,12 @@ final class TrackingPreview implements Runnable {
     private static final long START_RETRY_MS = 1000;
     private static final long POLL_MS = 10;
     private static final long STALE_MS = 2000;
+    private static final Text NO_DATA = new Text(R.string.test_no_data);
 
     private final Object lock = new Object();
     private final TrackingFrame latest = new TrackingFrame();
     private long sequence;
-    private volatile String status = "Starting the headset's eye and face tracking";
+    private volatile Text status = new Text(R.string.test_starting);
     private volatile boolean running = true;
 
     private TrackingPreview() {
@@ -39,7 +40,7 @@ final class TrackingPreview implements Runnable {
     }
 
     /** Null while frames arrive, otherwise why they do not. */
-    String status() {
+    Text status() {
         return status;
     }
 
@@ -88,7 +89,7 @@ final class TrackingPreview implements Runnable {
                         eye = service.trackingDataMemory(EyeTrackingService.MEMORY_EYE_TRACKING);
                         lastFrame = now;
                     } catch (EyeTrackingService.ServiceException e) {
-                        status = "Waiting for the headset to start tracking (" + e.getMessage() + "). Is it on your head?";
+                        status = new Text(R.string.test_waiting_headset, e.getMessage());
                         face = closeQuietly(face);
                         eye = closeQuietly(eye);
                         if (started)
@@ -109,14 +110,13 @@ final class TrackingPreview implements Runnable {
                         }
                         lastFrame = now;
                     }
-                    status = now - lastFrame < STALE_MS ? null
-                            : "Tracking started, waiting for data. Is the headset on your head?";
+                    status = now - lastFrame < STALE_MS ? null : NO_DATA;
                 }
                 SystemClock.sleep(POLL_MS);
             }
         } catch (EyeTrackingService.ServiceException | RuntimeException e) {
             Log.e(Tracker.TAG, "Test tab tracking stopped", e);
-            status = "Stopped: " + (e.getMessage() != null ? e.getMessage() : e.toString());
+            status = new Text(R.string.status_stopped, Text.literal(e.getMessage() != null ? e.getMessage() : e.toString()));
         } finally {
             closeQuietly(face);
             closeQuietly(eye);

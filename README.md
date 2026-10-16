@@ -48,6 +48,9 @@ PICO opens it as a panel next to Virtual Desktop instead of switching apps, whic
 - **Start when the headset turns on**: turns tracking back on after a restart if it was on before.
   PICO OS 5.9 can stop sideloaded apps from starting by broadcast (`ProcessIntercept`: "It is forbidden to start a 3rd
   process by broadcast"); opening the app also turns tracking back on if it was on.
+- **Language**: the flag buttons at the top of the Settings tab switch the app (both tabs) and the notification between
+  English, Japanese and Simplified Chinese. Until one is picked, the app follows the headset's language. Tracking keeps
+  running when the language changes. Expression names in the Test tab's table stay VRCFaceTracking's parameter names.
 
 ## Tracking adjustments (supporters)
 

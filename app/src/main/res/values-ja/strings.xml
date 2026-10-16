@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="language_code">ja</string>
+
+    <!-- Tracking status, shown on the settings screen and in the notification. -->
+    <string name="status_off">オフ</string>
+    <string name="status_starting">起動中</string>
+    <string name="status_stopped">停止しました: %1$s</string>
+    <string name="status_waiting_key">キーでペアリングした PC の VRCFaceTracking を待っています</string>
+    <string name="status_waiting_address">%1$s の VRCFaceTracking を待っています</string>
+    <string name="status_waiting_any">このネットワーク上の PC の VRCFaceTracking を待っています(最初に応答した PC とペアリングします)</string>
+    <string name="status_connected">%1$s に接続しました。トラッキングを開始しています</string>
+    <string name="status_connected_encrypted">%1$s に接続しました(キーでペアリング済み、暗号化)。トラッキングを開始しています</string>
+    <string name="status_paused">%1$s に接続済み、一時停止中: 別のアプリ(PICO Connect など)がアイトラッキングとフェイストラッキングを使用しています</string>
+    <string name="status_waiting_headset">%1$s に接続済み。ヘッドセットがトラッキングを開始するのを待っています(%2$s)</string>
+    <string name="status_sending">%1$s にトラッキングを送信中</string>
+    <string name="status_no_data">%1$s に接続済み。トラッキングを開始し、データを待っています(ヘッドセットを装着していますか?)</string>
+    <string name="error_port_in_use_tracking">UDP ポート %1$d が使用中です。以前の adb で起動したフェイストラッキングデーモンが使用している可能性があります。ヘッドセットを再起動し、もう一度トラッキングをオンにしてください。</string>
+    <string name="notification_turn_off">オフにする</string>
+
+    <!-- Pairing by code. -->
+    <string name="pairing_starting">開始しています...</string>
+    <string name="pairing_need_code">VRCFaceTracking に表示されている 6 桁の数字を入力してください。</string>
+    <string name="pairing_choose_pc">先に PC を選択してください。</string>
+    <string name="pairing_stopped">ペアリングを中止しました: %1$s</string>
+    <string name="pairing_port_in_use">UDP ポート %1$d が使用中です。ヘッドセットを再起動して、もう一度お試しください。</string>
+    <string name="pairing_timed_out">ペアリングを終了しました: 5 分以内にコードが入力されませんでした。</string>
+    <string name="pairing_checking">%1$s とコードを確認しています...</string>
+    <string name="pairing_no_answer">PC から応答がありません。VRCFaceTracking が動作していることを確認してから、もう一度コードを入力してください。</string>
+    <string name="pairing_paired">%1$s とペアリングしました。トラッキングデータは暗号化され、PC のアドレスが変わっても再び見つけられます。</string>
+    <string name="pairing_wrong_code">コードが違います。数秒後に VRCFaceTracking に新しいコードが表示されるので、そのコードを入力してください。</string>
+    <string name="pairing_cancelled">ペアリングをキャンセルしました。</string>
+    <string name="pairing_type_code">VRCFaceTracking の Output ページに表示されている 6 桁のペアリングコードを入力してください。</string>
+    <string name="pairing_looking">ネットワーク上の VRCFaceTracking を探しています。PC で「Pico 4 Face Tracking」を入れた VRCFaceTracking を実行すると、Output ページに 6 桁のペアリングコードが表示されます。</string>
+
+    <!-- Supporter licence. -->
+    <string name="licence_to">ライセンス所有者: %1$s</string>
+    <string name="licence_to_until">ライセンス所有者: %1$s、有効期限: %2$s</string>
+    <string name="licence_invalid_header">Pico Face Tracking のライセンスファイルではありません</string>
+    <string name="licence_invalid_signature_damaged">署名が壊れています</string>
+    <string name="licence_invalid_signature_mismatch">署名が一致しません: ファイルが変更されているか、正規のライセンスではありません</string>
+    <string name="licence_invalid_end_date">有効期限を読み取れません</string>
+    <string name="licence_invalid_licensee">ライセンス所有者が記載されていません</string>
+
+    <!-- Settings screen. -->
+    <string name="section_tracking">1. トラッキング</string>
+    <string name="tracking_switch">フェイス・アイトラッキング</string>
+    <string name="eyes_switch">目と眉</string>
+    <string name="mouth_switch">口・あご・頬・舌</string>
+    <string name="parts_help">チェックを外した部分はニュートラル(目は開いて正面を向いた状態、口は動きなし)として送信され、もう一方の部分はトラッキングを続けます。</string>
+    <string name="headset_eye_off">ヘッドセットの 設定 → LAB で「アイトラッキング」がオフになっています。そこでオンにしてください。ヘッドセットでオフにされたものは、このアプリではトラッキングできません。</string>
+    <string name="headset_face_off">ヘッドセットの 設定 → LAB で「フェイストラッキング」がオフになっています。そこでオンにしてください。ヘッドセットでオフにされたものは、このアプリではトラッキングできません。</string>
+    <string name="headset_both_off">ヘッドセットの 設定 → LAB で「アイトラッキング」と「フェイストラッキング」がオフになっています。そこでオンにしてください。ヘッドセットでオフにされたものは、このアプリではトラッキングできません。</string>
+    <string name="pause_for_other_apps">別のアプリ(PICO Connect など)がアイトラッキングとフェイストラッキングを使用している間は一時停止する(PICO Connect は VRCFaceTracking の Pico4SAFT モジュールに直接データを送ります)</string>
+
+    <string name="section_adjustments">トラッキング調整(サポーター向け)</string>
+    <string name="adjustments_features">舌出し、目の見開きの最大値、まばたきの強さ、スムージング、全 52 表情のエディター。</string>
+    <string name="adjustments_not_in_build">%1$sこれらはこのビルドには含まれていません。GitHub の Releases ページの APK に含まれており、サポーターライセンスで有効になります。ライセンスはまだ提供されていません。</string>
+    <string name="adjustments_locked">%1$sこれらはサポーターライセンスファイルで有効になりますが、ライセンスはまだ提供されていません。お持ちの場合は、.licence ファイルを Install face tracking app.bat と同じ場所に置いて実行するか、ここからインポートしてください。</string>
+    <string name="licence_ended">ライセンス(%1$s)の期限が切れました。新しいライセンスファイルをインポートしてください。</string>
+    <string name="licence_unlocked">有効です(%1$s)。アプリへのご支援ありがとうございます。</string>
+    <string name="import_licence">ライセンスファイルをインポート</string>
+    <string name="import_another_licence">別のライセンスファイルをインポート</string>
+    <string name="licence_unreadable">ライセンスファイルを読み込めませんでした: %1$s</string>
+    <string name="licence_file_empty">ファイルが空です</string>
+    <string name="licence_not_imported">このファイルはインポートされませんでした: %1$s。</string>
+
+    <string name="section_connection">接続</string>
+    <string name="paired_by_key">キーでペアリング済みです。PC のアドレスが変わっても接続でき、データは暗号化されます。下のアドレスは使用されません。</string>
+    <string name="paired_by_address">アドレスでペアリングしています(ペアリングキーなし)。コードでペアリングすると暗号化され、PC のアドレスが変わっても接続できます。VRCFaceTracking に「Pico 4 Face Tracking」が必要です。</string>
+    <string name="remove_pairing_key">ペアリングキーを削除</string>
+    <string name="pair_by_code">コードでペアリング</string>
+    <string name="pair_again">コードで再ペアリング(新しいキー)</string>
+    <string name="pairing_code_hint">6 桁のペアリングコード</string>
+    <string name="pair">ペアリング</string>
+    <string name="cancel_pairing">ペアリングをキャンセル</string>
+    <string name="pc_address_help">ペアリングする PC(VRCFaceTracking を実行している PC)。トラッキングデータを受け取れるのはこの PC だけです。空欄にすると、ネットワーク上で最初に見つかった VRCFaceTracking を実行中の PC とペアリングします。PC のアドレスが変わったときなど、もう一度ペアリングするには空欄に戻してください。</string>
+    <string name="pc_address_hint">空欄: 自動でペアリング</string>
+    <string name="pc_address_invalid">PC のアドレス(例: 192.168.1.20)を入力するか、空欄のままにしてください</string>
+    <string name="start_at_boot">ヘッドセットの起動時に開始する</string>
+
+    <string name="section_pc">PC 側</string>
+    <string name="pc_help">PC に VRCFaceTracking をインストールし、VRCFaceTracking に「Pico 4 Face Tracking」モジュール(コードでペアリング可能)か、アドレスでペアリングする thoricelli の Pico Facial Data Module をインストールしてください。Pico4SAFTExtTrackingModule はインストールしたままで構いません。PC で PICO Connect か Streaming Assistant が動作しているときにだけ起動します。トラッキングはヘッドセットを装着している間だけ送信されます。</string>
+    <string name="section_no_connection">PC が接続しない場合</string>
+    <string name="no_connection_help">Pico 4 Face Tracking は、VRCFaceTracking の起動から 5 秒以内にこのヘッドセットが応答した場合にだけ、アイトラッキングとフェイストラッキングを引き継ぎます。ここでトラッキングをオンにする前(またはヘッドセットの電源を入れる前)に VRCFaceTracking を起動した場合、ログに「No PICO headset answered」と表示されます。トラッキングをオンにしてから、VRCFaceTracking を再起動してください。</string>
+    <string name="section_after_restart">再起動後</string>
+    <string name="after_restart_help">トラッキングが自動で再開しない場合は、このアプリを一度開いてください。Virtual Desktop を閉じずに、その横にパネルとして開きます。</string>
+    <string name="stop_and_close">トラッキングを停止してアプリを閉じる</string>
+    <string name="stop_and_close_help">次にこのアプリを開くかヘッドセットを再起動すると、トラッキングは再開します。オフのままにするには、上の「フェイス・アイトラッキング」をオフにしてください。</string>
+
+    <!-- Test tab. -->
+    <string name="tab_settings">設定</string>
+    <string name="tab_test">テスト</string>
+    <string name="test_note">このタブを開いている間は、設定タブでトラッキングをオフにしていても、ヘッドセットのアイトラッキングとフェイストラッキングが動作します。ここから PC には何も送信されません。</string>
+    <string name="test_section_eyes">目</string>
+    <string name="test_eyes_help">周りを見回してください。点が視線を追います(大きい点: 両目、青: 左目、オレンジ: 右目)。四角の端は正面から約 30° です。まばたきしたり目を閉じたりすると、下のまぶたも一緒に閉じます。</string>
+    <string name="test_section_mouth">口とあご</string>
+    <string name="test_accuracy">PICO のフェイス・口のトラッキングは正確でない場合があります。表情によっては少ししか動かない、その表情をしていないのに動く、まったく動かないことがあります。ここにはヘッドセットが検出した内容、つまり VRCFaceTracking が受け取る内容が表示されます。</string>
+    <string name="test_mouth_help">口を開けたり、笑ったり、口をすぼめたり、頬をふくらませたり、舌を出したりしてみてください。</string>
+    <string name="test_section_parameters">すべてのパラメーター</string>
+    <string name="test_parameters_help">ヘッドセットが報告するそのままの値です(目と口のスイッチやトラッキング調整の前)。グレー: ヘッドセットがその部分を認識していません。</string>
+    <string name="test_group_eye">目</string>
+    <string name="test_left_gaze_x">左視線 x</string>
+    <string name="test_left_gaze_y">左視線 y</string>
+    <string name="test_right_gaze_x">右視線 x</string>
+    <string name="test_right_gaze_y">右視線 y</string>
+    <string name="test_combined_gaze_x">両目の視線 x</string>
+    <string name="test_combined_gaze_y">両目の視線 y</string>
+    <string name="test_left_openness">左目の開き</string>
+    <string name="test_right_openness">右目の開き</string>
+    <string name="test_left_pupil">左瞳孔 (mm)</string>
+    <string name="test_right_pupil">右瞳孔 (mm)</string>
+    <string name="test_group_other">その他</string>
+    <string name="test_laughing">笑い (確率)</string>
+    <string name="test_starting">ヘッドセットのアイトラッキングとフェイストラッキングを開始しています</string>
+    <string name="test_waiting_headset">ヘッドセットがトラッキングを開始するのを待っています(%1$s)。ヘッドセットを装着していますか?</string>
+    <string name="test_no_data">トラッキングを開始し、データを待っています。ヘッドセットを装着していますか?</string>
+    <string name="test_live">ライブ。目: %1$s、顔: %2$s。</string>
+    <string name="test_seen">検出</string>
+    <string name="test_not_seen">未検出</string>
+    <string name="eye_left">"左 "</string>
+    <string name="eye_right">"右 "</string>
+    <string name="eye_not_seen">未検出</string>
+    <string name="eye_open_suffix" formatted="false">% 開き</string>
+    <!-- Headings of Expressions.GROUPS, in the same order. -->
+    <string-array name="test_expression_groups">
+        <item>目の表情</item>
+        <item>眉</item>
+        <item>頬</item>
+        <item>鼻</item>
+        <item>あご</item>
+        <item>口</item>
+        <item>舌</item>
+    </string-array>
+</resources>

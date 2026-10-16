@@ -1,6 +1,7 @@
 package io.github.codeyumx.picofacetracking;
 
 import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.res.ColorStateList;
@@ -87,6 +88,11 @@ public final class MainActivity extends Activity {
     private boolean resumed;
 
     @Override
+    protected void attachBaseContext(Context base) {
+        super.attachBaseContext(Language.apply(base));
+    }
+
+    @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         prefs = new Prefs(this);
@@ -95,9 +101,10 @@ public final class MainActivity extends Activity {
         content.setOrientation(LinearLayout.VERTICAL);
         int padding = dp(24);
         content.setPadding(padding, dp(8), padding, padding);
+        addLanguages(content);
 
-        content.addView(heading("1. Tracking"));
-        tracking = checkCard("Face and eye tracking", 22, 40, 84);
+        content.addView(heading(R.string.section_tracking));
+        tracking = checkCard(R.string.tracking_switch, 22, 40, 84);
         tracking.setOnCheckedChangeListener((button, on) -> {
             if (showingState)
                 return;
@@ -113,8 +120,7 @@ public final class MainActivity extends Activity {
         addParts(content);
 
         pauseForOtherApps = new CheckBox(this);
-        pauseForOtherApps.setText("Pause while another app uses eye and face tracking, for example PICO Connect "
-                + "(it feeds VRCFaceTracking's Pico4SAFT module itself)");
+        pauseForOtherApps.setText(R.string.pause_for_other_apps);
         pauseForOtherApps.setChecked(prefs.pauseForOtherApps());
         pauseForOtherApps.setOnCheckedChangeListener((button, checked) -> {
             prefs.setPauseForOtherApps(checked);
@@ -132,11 +138,11 @@ public final class MainActivity extends Activity {
 
         addAdjustments(content);
 
-        content.addView(heading("Connection"));
+        content.addView(heading(R.string.section_connection));
         pairingInfo = text("", 15);
         content.addView(pairingInfo);
         removeKey = new Button(this);
-        removeKey.setText("Remove pairing key");
+        removeKey.setText(R.string.remove_pairing_key);
         removeKey.setOnClickListener(view -> {
             prefs.setPairingKey("");
             if (prefs.enabled()) {
@@ -147,41 +153,31 @@ public final class MainActivity extends Activity {
         });
         content.addView(removeKey);
         addPairing(content);
-        content.addView(text("Paired PC (the PC running VRCFaceTracking). Only this PC can receive your tracking data. "
-                + "Leave it empty to pair with the first PC on your network that runs VRCFaceTracking; "
-                + "clear it to pair again, for example when the PC gets a new address.", 15));
+        content.addView(text(getString(R.string.pc_address_help), 15));
         pcAddress = new EditText(this);
         pcAddress.setInputType(InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_DECIMAL);
         pcAddress.setKeyListener(DigitsKeyListener.getInstance("0123456789."));
-        pcAddress.setHint("empty: pair automatically");
+        pcAddress.setHint(R.string.pc_address_hint);
         pcAddress.setText(prefs.pcAddress());
         content.addView(pcAddress);
 
         startAtBoot = new CheckBox(this);
-        startAtBoot.setText("Start when the headset turns on");
+        startAtBoot.setText(R.string.start_at_boot);
         startAtBoot.setChecked(prefs.startAtBoot());
         startAtBoot.setOnCheckedChangeListener((button, checked) -> prefs.setStartAtBoot(checked));
         content.addView(startAtBoot);
 
-        content.addView(heading("On the PC"));
-        content.addView(text("Install VRCFaceTracking on the PC, then install the \"Pico 4 Face Tracking\" module in "
-                + "VRCFaceTracking (it can pair by code), or thoricelli's "
-                + "Pico Facial Data Module, which pairs by address. Pico4SAFTExtTrackingModule can stay installed: "
-                + "it only starts while PICO Connect or Streaming Assistant runs on the PC. "
-                + "Tracking only flows while the headset is worn.", 15));
-        content.addView(heading("If the PC does not connect"));
-        content.addView(text("Pico 4 Face Tracking only takes over eye and face tracking if this headset answers within "
-                + "5 seconds of VRCFaceTracking starting. If VRCFaceTracking was started before tracking was switched on "
-                + "here (or before the headset was on), its log says \"No PICO headset answered\": switch tracking on, "
-                + "then restart VRCFaceTracking.", 15));
-        content.addView(heading("After a restart"));
-        content.addView(text("If tracking does not come back by itself, open this app once. It opens as a panel next to "
-                + "Virtual Desktop without closing it.", 15));
+        content.addView(heading(R.string.section_pc));
+        content.addView(text(getString(R.string.pc_help), 15));
+        content.addView(heading(R.string.section_no_connection));
+        content.addView(text(getString(R.string.no_connection_help), 15));
+        content.addView(heading(R.string.section_after_restart));
+        content.addView(text(getString(R.string.after_restart_help), 15));
 
         // Closing the panel normally leaves tracking running; this button is for the rare full stop. The tracking
         // switch stays on, so tracking comes back the next time the app opens or the headset starts.
         Button close = new Button(this);
-        close.setText("Stop tracking and close the app");
+        close.setText(R.string.stop_and_close);
         close.setOnClickListener(view -> {
             TrackingService.stop(this);
             finishAndRemoveTask();
@@ -190,8 +186,7 @@ public final class MainActivity extends Activity {
                 LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
         closeLayout.setMargins(0, dp(20), 0, 0);
         content.addView(close, closeLayout);
-        content.addView(text("Tracking starts again the next time you open this app or restart the headset. To keep it "
-                + "off, switch off \"Face and eye tracking\" at the top instead.", 15));
+        content.addView(text(getString(R.string.stop_and_close_help), 15));
 
         ScrollView scroll = new ScrollView(this);
         scroll.addView(content);
@@ -207,10 +202,10 @@ public final class MainActivity extends Activity {
         TextView title = text(getString(R.string.app_name), 24);
         title.setTypeface(Typeface.DEFAULT_BOLD);
         header.addView(title, new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f));
-        settingsTabButton = tabButton("Settings");
+        settingsTabButton = tabButton(getString(R.string.tab_settings));
         settingsTabButton.setOnClickListener(view -> showTab(false));
         header.addView(settingsTabButton);
-        testTabButton = tabButton("Test");
+        testTabButton = tabButton(getString(R.string.tab_test));
         testTabButton.setOnClickListener(view -> showTab(true));
         LinearLayout.LayoutParams testLayout = new LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
@@ -283,28 +278,26 @@ public final class MainActivity extends Activity {
 
     /** The paid adjustments when unlocked; otherwise what they are and how to unlock them. */
     private void addAdjustments(LinearLayout content) {
-        content.addView(heading("Tracking adjustments (supporters)"));
+        content.addView(heading(R.string.section_adjustments));
         licenceInfo = text("", 15);
         content.addView(licenceInfo);
 
-        String features = "Tongue out, eye widen maximum, blink strength, smoothing and an editor for all 52 expressions. ";
+        String features = getString(R.string.adjustments_features);
         if (!Paid.inBuild()) {
-            licenceInfo.setText(features + "They are not part of this build: the APK on the GitHub Releases page includes "
-                    + "them, unlocked by a supporter licence. Licences are not available yet.");
+            licenceInfo.setText(getString(R.string.adjustments_not_in_build, features));
             return;
         }
 
         Licence licence = Licence.saved(prefs);
         if (licence == null)
-            licenceInfo.setText(features + "They unlock with a supporter licence file, which is not available yet. If you "
-                    + "have one, put the .licence file next to Install face tracking app.bat and run it, or import it here.");
+            licenceInfo.setText(getString(R.string.adjustments_locked, features));
         else if (licence.expired())
-            licenceInfo.setText("Your licence (" + licence.describe() + ") has ended. Import a new licence file.");
+            licenceInfo.setText(getString(R.string.licence_ended, licence.describe(this)));
         else
-            licenceInfo.setText("Unlocked, " + licence.describe() + ". Thank you for supporting the app.");
+            licenceInfo.setText(getString(R.string.licence_unlocked, licence.describe(this)));
 
         Button importLicence = new Button(this);
-        importLicence.setText(licence == null ? "Import licence file" : "Import another licence file");
+        importLicence.setText(licence == null ? R.string.import_licence : R.string.import_another_licence);
         importLicence.setOnClickListener(view -> startActivityForResult(new Intent(Intent.ACTION_OPEN_DOCUMENT)
                 .addCategory(Intent.CATEGORY_OPENABLE).setType("*/*"), IMPORT_LICENCE));
         content.addView(importLicence);
@@ -321,8 +314,10 @@ public final class MainActivity extends Activity {
 
         String text;
         try (InputStream in = getContentResolver().openInputStream(data.getData())) {
-            if (in == null)
-                throw new IOException("the file is empty");
+            if (in == null) {
+                licenceInfo.setText(getString(R.string.licence_unreadable, getString(R.string.licence_file_empty)));
+                return;
+            }
             byte[] buffer = new byte[MAX_LICENCE_BYTES];
             int length = 0;
             int read;
@@ -330,14 +325,14 @@ public final class MainActivity extends Activity {
                 length += read;
             text = new String(buffer, 0, length, StandardCharsets.UTF_8);
         } catch (IOException | SecurityException e) {
-            licenceInfo.setText("Could not read the licence file: " + e.getMessage());
+            licenceInfo.setText(getString(R.string.licence_unreadable, e.getMessage()));
             return;
         }
 
         try {
             Licence.parse(text);
-        } catch (IllegalArgumentException e) {
-            licenceInfo.setText("That file was not imported: " + e.getMessage() + ".");
+        } catch (Licence.Invalid e) {
+            licenceInfo.setText(getString(R.string.licence_not_imported, getString(e.reason)));
             return;
         }
         prefs.setLicence(text);
@@ -369,26 +364,26 @@ public final class MainActivity extends Activity {
         pairingCode.setInputType(InputType.TYPE_CLASS_NUMBER);
         pairingCode.setKeyListener(DigitsKeyListener.getInstance("0123456789 "));
         pairingCode.setFilters(new InputFilter[]{new InputFilter.LengthFilter(7)});
-        pairingCode.setHint("6-digit pairing code");
+        pairingCode.setHint(R.string.pairing_code_hint);
         pairingPanel.addView(pairingCode);
         pairingSubmit = new Button(this);
-        pairingSubmit.setText("Pair");
+        pairingSubmit.setText(R.string.pair);
         pairingSubmit.setOnClickListener(view -> {
             PairingSession session = PairingSession.current();
             if (session == null || !session.running())
                 return;
             int index = pairingPcs.getCheckedRadioButtonId() - 1;
             InetSocketAddress pc = index >= 0 && index < shownPcs.size() ? shownPcs.get(index) : null;
-            String error = session.submit(pc, pairingCode.getText().toString());
+            Text error = session.submit(pc, pairingCode.getText().toString());
             if (error != null)
-                pairingCode.setError(error);
+                pairingCode.setError(error.get(this));
             else
                 pairingCode.setText("");
             showState();
         });
         pairingPanel.addView(pairingSubmit);
         pairingCancel = new Button(this);
-        pairingCancel.setText("Cancel pairing");
+        pairingCancel.setText(R.string.cancel_pairing);
         pairingCancel.setOnClickListener(view -> {
             PairingSession session = PairingSession.current();
             if (session != null)
@@ -402,14 +397,14 @@ public final class MainActivity extends Activity {
     private void showPairing(boolean keyed) {
         PairingSession session = PairingSession.current();
         boolean pairing = session != null && session.running();
-        pairWithPc.setText(keyed ? "Pair again by code (new key)" : "Pair by code");
+        pairWithPc.setText(keyed ? R.string.pair_again : R.string.pair_by_code);
         pairWithPc.setVisibility(pairing ? View.GONE : View.VISIBLE);
         removeKey.setVisibility(keyed && !pairing ? View.VISIBLE : View.GONE);
         pairingPanel.setVisibility(session != null ? View.VISIBLE : View.GONE);
         if (session == null)
             return;
 
-        pairingStatus.setText(session.status());
+        pairingStatus.setText(session.status().get(this));
         List<String> labels = new ArrayList<>();
         List<InetSocketAddress> pcs = session.pcs(labels);
         if (!pcs.equals(shownPcs)) {
@@ -441,7 +436,7 @@ public final class MainActivity extends Activity {
         String typed = pcAddress.getText().toString().trim();
         Inet4Address pc = Prefs.parseIpv4(typed);
         if (pc == null && !typed.isEmpty()) {
-            pcAddress.setError("Enter the PC's address, for example 192.168.1.20, or leave it empty");
+            pcAddress.setError(getString(R.string.pc_address_invalid));
             showState();
             return;
         }
@@ -467,12 +462,9 @@ public final class MainActivity extends Activity {
         // The adb control receiver can change the address while this screen is open.
         if (on && !pcAddress.getText().toString().equals(prefs.pcAddress()))
             pcAddress.setText(prefs.pcAddress());
-        status.setText(on || TrackingService.status().startsWith("Stopped:") ? TrackingService.status() : "Off");
+        status.setText(on || TrackingService.failed() ? TrackingService.status().get(this) : getString(R.string.status_off));
         boolean keyed = !prefs.pairingKey().isEmpty();
-        pairingInfo.setText(keyed
-                ? "Paired by key. The PC's address can change, and the data is encrypted. The address below is not used."
-                : "Paired by address (no pairing key). Pairing by code adds encryption and keeps working when the PC's "
-                + "address changes; it needs \"Pico 4 Face Tracking\" in VRCFaceTracking.");
+        pairingInfo.setText(keyed ? R.string.paired_by_key : R.string.paired_by_address);
         showPairing(keyed);
         showHeadsetToggles();
         showingState = false;
@@ -483,10 +475,9 @@ public final class MainActivity extends Activity {
         // A missing key counts as on, so headsets without these switches show no warning.
         boolean eyeOn = Settings.System.getInt(getContentResolver(), "key_et_enable", 1) != 0;
         boolean faceOn = Settings.System.getInt(getContentResolver(), "key_ft_enable", 1) != 0;
-        String off = !eyeOn && !faceOn ? "Eye Tracking and Face Tracking are" : !eyeOn ? "Eye Tracking is" : "Face Tracking is";
         headsetToggles.setVisibility(eyeOn && faceOn ? View.GONE : View.VISIBLE);
-        headsetToggles.setText(off + " switched off in the headset's Settings → LAB. Switch it on there; "
-                + "this app cannot track what the headset has switched off.");
+        headsetToggles.setText(!eyeOn && !faceOn ? R.string.headset_both_off
+                : !eyeOn ? R.string.headset_eye_off : R.string.headset_face_off);
     }
 
     private void requestMissingPermissions() {
@@ -499,8 +490,38 @@ public final class MainActivity extends Activity {
             requestPermissions(missing.toArray(new String[0]), 0);
     }
 
-    TextView heading(String label) {
-        TextView heading = text(label, 18);
+    /** A flag button for each Language; the one shown is highlighted, and picking another redraws the screen in it. */
+    private void addLanguages(LinearLayout content) {
+        LinearLayout row = new LinearLayout(this);
+        row.setOrientation(LinearLayout.HORIZONTAL);
+        Language shown = Language.shown(this);
+        for (Language language : Language.values()) {
+            boolean selected = language == shown;
+            TextView button = text(getString(language.label), 16);
+            button.setTypeface(selected ? Typeface.DEFAULT_BOLD : Typeface.DEFAULT);
+            button.setPadding(dp(14), dp(8), dp(14), dp(8));
+            button.setBackground(new RippleDrawable(ColorStateList.valueOf(0x33FFFFFF),
+                    selected ? card(0x332E7D32, ON_COLOR) : card(0x14808080, 0x66808080), null));
+            button.setSelected(selected);
+            button.setOnClickListener(view -> {
+                if (language == Language.shown(this))
+                    return;
+                prefs.setLanguage(language.code);
+                recreate();
+            });
+            LinearLayout.LayoutParams layout = new LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+            layout.setMargins(0, 0, dp(8), 0);
+            row.addView(button, layout);
+        }
+        LinearLayout.LayoutParams rowLayout = new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+        rowLayout.setMargins(0, 0, 0, dp(8));
+        content.addView(row, rowLayout);
+    }
+
+    TextView heading(int label) {
+        TextView heading = text(getString(label), 18);
         heading.setTypeface(Typeface.DEFAULT_BOLD);
         heading.setPadding(0, dp(20), 0, dp(4));
         return heading;
@@ -510,13 +531,13 @@ public final class MainActivity extends Activity {
     private void addParts(LinearLayout content) {
         LinearLayout row = new LinearLayout(this);
         row.setOrientation(LinearLayout.HORIZONTAL);
-        CheckBox eyes = checkCard("Eyes and brows", 18, 32, 64);
+        CheckBox eyes = checkCard(R.string.eyes_switch, 18, 32, 64);
         eyes.setChecked(prefs.eyesEnabled());
         eyes.setOnCheckedChangeListener((button, on) -> {
             prefs.setEyesEnabled(on);
             FaceParts.reload(prefs);
         });
-        CheckBox mouth = checkCard("Mouth, jaw, cheeks and tongue", 18, 32, 64);
+        CheckBox mouth = checkCard(R.string.mouth_switch, 18, 32, 64);
         mouth.setChecked(prefs.mouthEnabled());
         mouth.setOnCheckedChangeListener((button, on) -> {
             prefs.setMouthEnabled(on);
@@ -533,12 +554,11 @@ public final class MainActivity extends Activity {
         headsetToggles.setTextColor(WARNING_COLOR);
         headsetToggles.setVisibility(View.GONE);
         content.addView(headsetToggles);
-        content.addView(text("Untick a part to send it as neutral (eyes open and looking ahead, or no mouth movement) "
-                + "while the other part keeps tracking.", 15));
+        content.addView(text(getString(R.string.parts_help), 15));
     }
 
     /** A large check box on a rounded card, tinted green while checked. */
-    private CheckBox checkCard(String label, int textSp, int markDp, int minHeightDp) {
+    private CheckBox checkCard(int label, int textSp, int markDp, int minHeightDp) {
         CheckBox check = new CheckBox(this);
         check.setText(label);
         check.setTextSize(textSp);

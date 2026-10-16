@@ -1,4 +1,145 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Pico Face Tracking</string>
+    <string name="app_name" translatable="false">Pico Face Tracking</string>
+
+    <!-- Code of this translation, see Language; each translation sets its own. -->
+    <string name="language_code">en</string>
+    <!-- The language buttons, each in its own language. -->
+    <string name="language_english" translatable="false">🇬🇧 English</string>
+    <string name="language_japanese" translatable="false">🇯🇵 日本語</string>
+    <string name="language_chinese" translatable="false">🇨🇳 中文</string>
+
+    <!-- Tracking status, shown on the settings screen and in the notification. -->
+    <string name="status_off">Off</string>
+    <string name="status_starting">Starting</string>
+    <string name="status_stopped">Stopped: %1$s</string>
+    <string name="status_waiting_key">Waiting for VRCFaceTracking on the PC paired by key</string>
+    <string name="status_waiting_address">Waiting for VRCFaceTracking on %1$s</string>
+    <string name="status_waiting_any">Waiting for VRCFaceTracking on any PC on this network, it pairs with the first one</string>
+    <string name="status_connected">Connected to %1$s, starting tracking</string>
+    <string name="status_connected_encrypted">Connected to %1$s (paired by key, encrypted), starting tracking</string>
+    <string name="status_paused">Connected to %1$s, paused: another app is using eye and face tracking, for example PICO Connect</string>
+    <string name="status_waiting_headset">Connected to %1$s, waiting for the headset to start tracking (%2$s)</string>
+    <string name="status_sending">Sending tracking to %1$s</string>
+    <string name="status_no_data">Connected to %1$s, tracking started, waiting for data (is the headset on your head?)</string>
+    <string name="error_port_in_use_tracking">UDP port %1$d is in use, probably by the old adb-started face tracking daemon. Restart the headset and turn tracking on again.</string>
+    <string name="notification_turn_off">Turn off</string>
+
+    <!-- Pairing by code. -->
+    <string name="pairing_starting">Starting...</string>
+    <string name="pairing_need_code">Type the 6 digits shown in VRCFaceTracking.</string>
+    <string name="pairing_choose_pc">Choose the PC first.</string>
+    <string name="pairing_stopped">Pairing stopped: %1$s</string>
+    <string name="pairing_port_in_use">UDP port %1$d is in use. Restart the headset and try again.</string>
+    <string name="pairing_timed_out">Pairing ended: no code was entered within 5 minutes.</string>
+    <string name="pairing_checking">Checking the code with %1$s...</string>
+    <string name="pairing_no_answer">The PC did not answer. Check that VRCFaceTracking still runs, then type the code again.</string>
+    <string name="pairing_paired">Paired with %1$s. Tracking data is now encrypted, and the PC is found again when its address changes.</string>
+    <string name="pairing_wrong_code">Wrong code. VRCFaceTracking shows a new code in a few seconds; type that one.</string>
+    <string name="pairing_cancelled">Pairing cancelled.</string>
+    <string name="pairing_type_code">Type the 6-digit pairing code from VRCFaceTracking\'s Output page.</string>
+    <string name="pairing_looking">Looking for VRCFaceTracking on your network. On the PC, run VRCFaceTracking with \"Pico 4 Face Tracking\"; its Output page then shows a 6-digit pairing code.</string>
+
+    <!-- Supporter licence. -->
+    <string name="licence_to">licensed to %1$s</string>
+    <string name="licence_to_until">licensed to %1$s, until %2$s</string>
+    <string name="licence_invalid_header">not a Pico Face Tracking licence file</string>
+    <string name="licence_invalid_signature_damaged">the signature is damaged</string>
+    <string name="licence_invalid_signature_mismatch">the signature does not match: the file was changed or is not a real licence</string>
+    <string name="licence_invalid_end_date">the end date is not readable</string>
+    <string name="licence_invalid_licensee">the licence names no licensee</string>
+
+    <!-- Settings screen. -->
+    <string name="section_tracking">1. Tracking</string>
+    <string name="tracking_switch">Face and eye tracking</string>
+    <string name="eyes_switch">Eyes and brows</string>
+    <string name="mouth_switch">Mouth, jaw, cheeks and tongue</string>
+    <string name="parts_help">Untick a part to send it as neutral (eyes open and looking ahead, or no mouth movement) while the other part keeps tracking.</string>
+    <string name="headset_eye_off">Eye Tracking is switched off in the headset\'s Settings → LAB. Switch it on there; this app cannot track what the headset has switched off.</string>
+    <string name="headset_face_off">Face Tracking is switched off in the headset\'s Settings → LAB. Switch it on there; this app cannot track what the headset has switched off.</string>
+    <string name="headset_both_off">Eye Tracking and Face Tracking are switched off in the headset\'s Settings → LAB. Switch them on there; this app cannot track what the headset has switched off.</string>
+    <string name="pause_for_other_apps">Pause while another app uses eye and face tracking, for example PICO Connect (it feeds VRCFaceTracking\'s Pico4SAFT module itself)</string>
+
+    <string name="section_adjustments">Tracking adjustments (supporters)</string>
+    <string name="adjustments_features">Tongue out, eye widen maximum, blink strength, smoothing and an editor for all 52 expressions.</string>
+    <!-- %1$s is adjustments_features. -->
+    <string name="adjustments_not_in_build">%1$s They are not part of this build: the APK on the GitHub Releases page includes them, unlocked by a supporter licence. Licences are not available yet.</string>
+    <string name="adjustments_locked">%1$s They unlock with a supporter licence file, which is not available yet. If you have one, put the .licence file next to Install face tracking app.bat and run it, or import it here.</string>
+    <!-- %1$s is licence_to or licence_to_until. -->
+    <string name="licence_ended">Your licence (%1$s) has ended. Import a new licence file.</string>
+    <string name="licence_unlocked">Unlocked, %1$s. Thank you for supporting the app.</string>
+    <string name="import_licence">Import licence file</string>
+    <string name="import_another_licence">Import another licence file</string>
+    <string name="licence_unreadable">Could not read the licence file: %1$s</string>
+    <string name="licence_file_empty">the file is empty</string>
+    <string name="licence_not_imported">That file was not imported: %1$s.</string>
+
+    <string name="section_connection">Connection</string>
+    <string name="paired_by_key">Paired by key. The PC\'s address can change, and the data is encrypted. The address below is not used.</string>
+    <string name="paired_by_address">Paired by address (no pairing key). Pairing by code adds encryption and keeps working when the PC\'s address changes; it needs \"Pico 4 Face Tracking\" in VRCFaceTracking.</string>
+    <string name="remove_pairing_key">Remove pairing key</string>
+    <string name="pair_by_code">Pair by code</string>
+    <string name="pair_again">Pair again by code (new key)</string>
+    <string name="pairing_code_hint">6-digit pairing code</string>
+    <string name="pair">Pair</string>
+    <string name="cancel_pairing">Cancel pairing</string>
+    <string name="pc_address_help">Paired PC (the PC running VRCFaceTracking). Only this PC can receive your tracking data. Leave it empty to pair with the first PC on your network that runs VRCFaceTracking; clear it to pair again, for example when the PC gets a new address.</string>
+    <string name="pc_address_hint">empty: pair automatically</string>
+    <string name="pc_address_invalid">Enter the PC\'s address, for example 192.168.1.20, or leave it empty</string>
+    <string name="start_at_boot">Start when the headset turns on</string>
+
+    <string name="section_pc">On the PC</string>
+    <string name="pc_help">Install VRCFaceTracking on the PC, then install the \"Pico 4 Face Tracking\" module in VRCFaceTracking (it can pair by code), or thoricelli\'s Pico Facial Data Module, which pairs by address. Pico4SAFTExtTrackingModule can stay installed: it only starts while PICO Connect or Streaming Assistant runs on the PC. Tracking only flows while the headset is worn.</string>
+    <string name="section_no_connection">If the PC does not connect</string>
+    <!-- "No PICO headset answered" is VRCFaceTracking's log text; keep it in English. -->
+    <string name="no_connection_help">Pico 4 Face Tracking only takes over eye and face tracking if this headset answers within 5 seconds of VRCFaceTracking starting. If VRCFaceTracking was started before tracking was switched on here (or before the headset was on), its log says \"No PICO headset answered\": switch tracking on, then restart VRCFaceTracking.</string>
+    <string name="section_after_restart">After a restart</string>
+    <string name="after_restart_help">If tracking does not come back by itself, open this app once. It opens as a panel next to Virtual Desktop without closing it.</string>
+    <string name="stop_and_close">Stop tracking and close the app</string>
+    <string name="stop_and_close_help">Tracking starts again the next time you open this app or restart the headset. To keep it off, switch off \"Face and eye tracking\" at the top instead.</string>
+
+    <!-- Test tab. -->
+    <string name="tab_settings">Settings</string>
+    <string name="tab_test">Test</string>
+    <string name="test_note">While this tab is open, the headset\'s eye and face tracking runs even if tracking is switched off on the Settings tab. Nothing is sent to the PC from here.</string>
+    <string name="test_section_eyes">Eyes</string>
+    <string name="test_eyes_help">Look around: the dots follow your eyes (big dot: both eyes, blue: left eye, orange: right eye). The edges of the square are about 30° from straight ahead. Blink or close your eyes: the eyelids below close with them.</string>
+    <string name="test_section_mouth">Mouth and jaw</string>
+    <string name="test_accuracy">PICO\'s face and mouth tracking may not be accurate: some expressions move only a little, move when you are not making them, or do not move at all. This shows what the headset detects, which is what VRCFaceTracking receives.</string>
+    <string name="test_mouth_help">Open your mouth, smile, pucker, puff your cheeks or stick out your tongue.</string>
+    <string name="test_section_parameters">All parameters</string>
+    <string name="test_parameters_help">The values as the headset reports them, before the eyes and mouth switches and the tracking adjustments. Grey: the headset does not see that part of the face.</string>
+    <string name="test_group_eye">Eye</string>
+    <string name="test_left_gaze_x">Left gaze x</string>
+    <string name="test_left_gaze_y">Left gaze y</string>
+    <string name="test_right_gaze_x">Right gaze x</string>
+    <string name="test_right_gaze_y">Right gaze y</string>
+    <string name="test_combined_gaze_x">Combined gaze x</string>
+    <string name="test_combined_gaze_y">Combined gaze y</string>
+    <string name="test_left_openness">Left openness</string>
+    <string name="test_right_openness">Right openness</string>
+    <string name="test_left_pupil">Left pupil (mm)</string>
+    <string name="test_right_pupil">Right pupil (mm)</string>
+    <string name="test_group_other">Other</string>
+    <string name="test_laughing">Laughing (probability)</string>
+    <string name="test_starting">Starting the headset\'s eye and face tracking</string>
+    <string name="test_waiting_headset">Waiting for the headset to start tracking (%1$s). Is it on your head?</string>
+    <string name="test_no_data">Tracking started, waiting for data. Is the headset on your head?</string>
+    <string name="test_live">Live. Eyes %1$s, face %2$s.</string>
+    <string name="test_seen">seen</string>
+    <string name="test_not_seen">not seen</string>
+    <string name="eye_left">"Left "</string>
+    <string name="eye_right">"Right "</string>
+    <string name="eye_not_seen">not seen</string>
+    <string name="eye_open_suffix" formatted="false">% open</string>
+    <!-- Headings of Expressions.GROUPS, in the same order. -->
+    <string-array name="test_expression_groups">
+        <item>Eye expressions</item>
+        <item>Brow</item>
+        <item>Cheek</item>
+        <item>Nose</item>
+        <item>Jaw</item>
+        <item>Mouth</item>
+        <item>Tongue</item>
+    </string-array>
 </resources>

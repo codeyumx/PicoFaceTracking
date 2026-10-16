@@ -22,7 +22,10 @@ public final class TrackingService extends Service implements Tracker.Listener {
     private static final String CHANNEL_ID = "tracking";
     private static final int NOTIFICATION_ID = 1;
 
-    private static volatile String status = "Off";
+    private static final Text OFF = new Text(R.string.status_off);
+    private static final Text STARTING = new Text(R.string.status_starting);
+
+    private static volatile Text status = OFF;
     /** True from onCreate until the tracker has stopped in onDestroy. */
     private static volatile boolean running;
 
@@ -30,8 +33,13 @@ public final class TrackingService extends Service implements Tracker.Listener {
     private Tracker tracker;
     private Thread trackerThread;
 
-    static String status() {
+    static Text status() {
         return status;
+    }
+
+    /** Whether tracking stopped by itself (status says why), rather than being switched off. */
+    static boolean failed() {
+        return status.id == R.string.status_stopped;
     }
 
     static boolean running() {
@@ -60,7 +68,8 @@ public final class TrackingService extends Service implements Tracker.Listener {
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         // A service started with startForegroundService must call startForeground, even when it stops right away.
-        startForeground(NOTIFICATION_ID, notification("Starting"));
+        // A running tracker keeps its status; showing it again also follows a language change on the settings screen.
+        startForeground(NOTIFICATION_ID, notification(tracker != null ? status : STARTING));
 
         Prefs prefs = new Prefs(this);
         if (intent != null && ACTION_TURN_OFF.equals(intent.getAction()))
@@ -97,24 +106,24 @@ public final class TrackingService extends Service implements Tracker.Listener {
             tracker = null;
             trackerThread = null;
         }
-        if (!status.startsWith("Stopped:"))
-            status = "Off";
+        if (!failed())
+            status = OFF;
         running = false;
         super.onDestroy();
     }
 
     @Override
-    public void onStatus(String newStatus) {
+    public void onStatus(Text newStatus) {
         if (newStatus.equals(status))
             return;
         status = newStatus;
-        Log.i(Tracker.TAG, newStatus);
+        Log.i(Tracker.TAG, newStatus.get(Language.ENGLISH.in(this)));
         getSystemService(NotificationManager.class).notify(NOTIFICATION_ID, notification(newStatus));
     }
 
     @Override
-    public void onFailure(String message) {
-        status = "Stopped: " + message;
+    public void onFailure(Text reason) {
+        status = new Text(R.string.status_stopped, reason);
         new Prefs(this).setEnabled(false);
         mainThread.post(this::stopSelf);
     }
@@ -129,7 +138,10 @@ public final class TrackingService extends Service implements Tracker.Listener {
         return null;
     }
 
-    private Notification notification(String text) {
+    private Notification notification(Text text) {
+        // Resolved now rather than when the service started, so a language chosen since then applies.
+        Context localized = Language.apply(this);
+        String shown = text.get(localized);
         PendingIntent open = PendingIntent.getActivity(this, 0,
                 new Intent(this, MainActivity.class), PendingIntent.FLAG_IMMUTABLE);
         PendingIntent turnOff = PendingIntent.getService(this, 1,
@@ -138,12 +150,12 @@ public final class TrackingService extends Service implements Tracker.Listener {
         return new Notification.Builder(this, CHANNEL_ID)
                 .setSmallIcon(R.drawable.ic_notification)
                 .setContentTitle(getString(R.string.app_name))
-                .setContentText(text)
-                .setStyle(new Notification.BigTextStyle().bigText(text))
+                .setContentText(shown)
+                .setStyle(new Notification.BigTextStyle().bigText(shown))
                 .setContentIntent(open)
                 .setOngoing(true)
                 .addAction(new Notification.Action.Builder(
-                        Icon.createWithResource(this, R.drawable.ic_notification), "Turn off", turnOff).build())
+                        Icon.createWithResource(this, R.drawable.ic_notification), localized.getString(R.string.notification_turn_off), turnOff).build())
                 .build();
     }
 }

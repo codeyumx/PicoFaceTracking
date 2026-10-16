@@ -26,7 +26,11 @@ final class EyesView extends View {
     private final Paint label = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final Path almond = new Path();
     private final Path lid = new Path();
-    private final char[] text = new char[32];
+    private final char[] text = new char[64];
+    /** Label parts, read once so drawing does not allocate: "Left ", "Right ", "not seen", "% open". */
+    private final String[] sides;
+    private final String notSeen;
+    private final String openSuffix;
     private final float density;
 
     private boolean seen;
@@ -42,6 +46,9 @@ final class EyesView extends View {
         label.setColor(0xFFE0E0E0);
         label.setTextAlign(Paint.Align.CENTER);
         label.setTextSize(14 * context.getResources().getDisplayMetrics().scaledDensity);
+        sides = new String[]{context.getString(R.string.eye_left), context.getString(R.string.eye_right)};
+        notSeen = context.getString(R.string.eye_not_seen);
+        openSuffix = context.getString(R.string.eye_open_suffix);
     }
 
     /** Index 0 is the left eye, 1 the right eye. */
@@ -142,16 +149,16 @@ final class EyesView extends View {
 
     /** "Left 87% open" into text, without allocating; returns the length. */
     private int describe(int eye) {
-        int length = append(eye == 0 ? "Left " : "Right ", 0);
+        int length = append(sides[eye], 0);
         if (!seen)
-            return append("not seen", length);
+            return append(notSeen, length);
         int percent = Math.round(clamp(openness[eye], 0f, 1f) * 100f);
         if (percent >= 100)
             text[length++] = '1';
         if (percent >= 10)
             text[length++] = (char) ('0' + percent / 10 % 10);
         text[length++] = (char) ('0' + percent % 10);
-        return append("% open", length);
+        return append(openSuffix, length);
     }
 
     private int append(String value, int at) {

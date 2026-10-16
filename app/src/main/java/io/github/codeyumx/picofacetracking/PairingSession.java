@@ -41,7 +41,7 @@ final class PairingSession implements Runnable {
     /** PCs that sent a START for the current attempt, by address, in the order they appeared. */
     private final Map<InetSocketAddress, PairingExchange.Offer> pcs = new LinkedHashMap<>();
     private volatile boolean running = true;
-    private volatile String status = "Starting...";
+    private volatile Text status = new Text(R.string.pairing_starting);
     private volatile boolean paired;
     /** Set by the screen, taken by the pairing thread. */
     private InetSocketAddress submittedPc;
@@ -78,7 +78,7 @@ final class PairingSession implements Runnable {
         return paired;
     }
 
-    String status() {
+    Text status() {
         return status;
     }
 
@@ -95,12 +95,12 @@ final class PairingSession implements Runnable {
     }
 
     /** Pairs with the PC using the code the user typed; returns an error to show, or null. */
-    synchronized String submit(InetSocketAddress pc, String typedCode) {
+    synchronized Text submit(InetSocketAddress pc, String typedCode) {
         String code = PairingExchange.normalizeCode(typedCode);
         if (code == null)
-            return "Type the 6 digits shown in VRCFaceTracking.";
+            return new Text(R.string.pairing_need_code);
         if (pc == null || !pcs.containsKey(pc))
-            return "Choose the PC first.";
+            return new Text(R.string.pairing_choose_pc);
         submittedPc = pc;
         submittedCode = code;
         return null;
@@ -120,7 +120,7 @@ final class PairingSession implements Runnable {
             pair(prefs);
         } catch (IOException e) {
             Log.w(TAG, "Pairing failed", e);
-            status = "Pairing stopped: " + e.getMessage();
+            status = new Text(R.string.pairing_stopped, Text.literal(String.valueOf(e.getMessage())));
         } finally {
             multicastLock.release();
             running = false;
@@ -135,7 +135,9 @@ final class PairingSession implements Runnable {
             try {
                 socket.bind(new InetSocketAddress(PORT));
             } catch (IOException e) {
-                throw new IOException("UDP port " + PORT + " is in use. Restart the headset and try again.", e);
+                Log.w(TAG, "Pairing failed: UDP port " + PORT + " is in use", e);
+                status = new Text(R.string.pairing_stopped, new Text(R.string.pairing_port_in_use, PORT));
+                return;
             }
             try {
                 socket.joinGroup(InetAddress.getByAddress(MULTICAST_GROUP));
@@ -158,7 +160,7 @@ final class PairingSession implements Runnable {
             while (running) {
                 long now = SystemClock.elapsedRealtime();
                 if (now >= end) {
-                    status = "Pairing ended: no code was entered within 5 minutes.";
+                    status = new Text(R.string.pairing_timed_out);
                     return;
                 }
 
@@ -176,7 +178,7 @@ final class PairingSession implements Runnable {
                         offer = pcs.get(pc);
                     }
                     if (offer != null) {
-                        status = "Checking the code with " + offer.pcName + "...";
+                        status = new Text(R.string.pairing_checking, offer.pcName);
                         attempt = PairingExchange.respond(offer, headsetNonce, code, random);
                         attemptPc = pc;
                         attemptStarted = now;
@@ -186,7 +188,7 @@ final class PairingSession implements Runnable {
 
                 if (attempt != null) {
                     if (now - attemptStarted > ANSWER_TIMEOUT_MS) {
-                        status = "The PC did not answer. Check that VRCFaceTracking still runs, then type the code again.";
+                        status = new Text(R.string.pairing_no_answer);
                         attempt = null;
                     } else if (now - lastSent >= RESEND_MS) {
                         socket.send(new DatagramPacket(attempt.response, attempt.response.length, attemptPc));
@@ -234,7 +236,7 @@ final class PairingSession implements Runnable {
                     }
                     prefs.setPairingKey(Base64.encodeToString(attempt.key, Base64.NO_WRAP));
                     paired = true;
-                    status = "Paired with " + pcName + ". Tracking data is now encrypted, and the PC is found again when its address changes.";
+                    status = new Text(R.string.pairing_paired, pcName);
                     Log.i(TAG, "Paired by code with " + pcName + " at " + sender.getHostAddress() + ".");
                     return;
                 }
@@ -245,20 +247,19 @@ final class PairingSession implements Runnable {
                         pcs.clear();
                     }
                     attempt = null;
-                    status = "Wrong code. VRCFaceTracking shows a new code in a few seconds; type that one.";
+                    status = new Text(R.string.pairing_wrong_code);
                 }
             }
-            status = "Pairing cancelled.";
+            status = new Text(R.string.pairing_cancelled);
         }
     }
 
-    private String waitingStatus() {
+    private Text waitingStatus() {
         synchronized (this) {
             if (!pcs.isEmpty())
-                return "Type the 6-digit pairing code from VRCFaceTracking's Output page.";
+                return new Text(R.string.pairing_type_code);
         }
-        return "Looking for VRCFaceTracking on your network. On the PC, run VRCFaceTracking with "
-                + "\"Pico 4 Face Tracking\"; its Output page then shows a 6-digit pairing code.";
+        return new Text(R.string.pairing_looking);
     }
 
     private String headsetName() {

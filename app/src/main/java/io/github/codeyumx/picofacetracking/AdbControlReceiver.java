@@ -54,7 +54,12 @@ public final class AdbControlReceiver extends BroadcastReceiver {
                 text = new String(Base64.decode(licence, Base64.DEFAULT), StandardCharsets.UTF_8);
                 if (!text.isEmpty())
                     Licence.parse(text);
+            } catch (Licence.Invalid e) {
+                // The install script reads this, so it stays in English.
+                fail("licence: " + Language.ENGLISH.in(context).getString(e.reason));
+                return;
             } catch (IllegalArgumentException e) {
+                // Not Base64.
                 fail("licence: " + e.getMessage());
                 return;
             }

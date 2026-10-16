@@ -1,0 +1,136 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Simplified Chinese, used for every Chinese locale. -->
+<resources>
+    <string name="language_code">zh</string>
+
+    <!-- Tracking status, shown on the settings screen and in the notification. -->
+    <string name="status_off">已关闭</string>
+    <string name="status_starting">正在启动</string>
+    <string name="status_stopped">已停止:%1$s</string>
+    <string name="status_waiting_key">正在等待通过密钥配对的电脑上的 VRCFaceTracking</string>
+    <string name="status_waiting_address">正在等待 %1$s 上的 VRCFaceTracking</string>
+    <string name="status_waiting_any">正在等待此网络中任意电脑上的 VRCFaceTracking,将与第一台电脑配对</string>
+    <string name="status_connected">已连接到 %1$s,正在启动追踪</string>
+    <string name="status_connected_encrypted">已连接到 %1$s(已通过密钥配对,已加密),正在启动追踪</string>
+    <string name="status_paused">已连接到 %1$s,已暂停:另一个应用(例如 PICO Connect)正在使用眼动追踪和面部追踪</string>
+    <string name="status_waiting_headset">已连接到 %1$s,正在等待头显开始追踪(%2$s)</string>
+    <string name="status_sending">正在向 %1$s 发送追踪数据</string>
+    <string name="status_no_data">已连接到 %1$s,追踪已启动,正在等待数据(头显是否已戴好?)</string>
+    <string name="error_port_in_use_tracking">UDP 端口 %1$d 已被占用,可能是旧的通过 adb 启动的面部追踪守护进程。请重启头显,然后重新开启追踪。</string>
+    <string name="notification_turn_off">关闭</string>
+
+    <!-- Pairing by code. -->
+    <string name="pairing_starting">正在启动...</string>
+    <string name="pairing_need_code">请输入 VRCFaceTracking 中显示的 6 位数字。</string>
+    <string name="pairing_choose_pc">请先选择电脑。</string>
+    <string name="pairing_stopped">配对已停止:%1$s</string>
+    <string name="pairing_port_in_use">UDP 端口 %1$d 已被占用。请重启头显后重试。</string>
+    <string name="pairing_timed_out">配对已结束:5 分钟内未输入配对码。</string>
+    <string name="pairing_checking">正在与 %1$s 核对配对码...</string>
+    <string name="pairing_no_answer">电脑没有响应。请确认 VRCFaceTracking 仍在运行,然后重新输入配对码。</string>
+    <string name="pairing_paired">已与 %1$s 配对。追踪数据现已加密,电脑地址变化后也能重新找到它。</string>
+    <string name="pairing_wrong_code">配对码错误。VRCFaceTracking 会在几秒后显示新的配对码,请输入新的配对码。</string>
+    <string name="pairing_cancelled">已取消配对。</string>
+    <string name="pairing_type_code">请输入 VRCFaceTracking 的 Output 页面上显示的 6 位配对码。</string>
+    <string name="pairing_looking">正在网络中查找 VRCFaceTracking。请在电脑上运行装有“Pico 4 Face Tracking”的 VRCFaceTracking,其 Output 页面会显示 6 位配对码。</string>
+
+    <!-- Supporter licence. -->
+    <string name="licence_to">授权给 %1$s</string>
+    <string name="licence_to_until">授权给 %1$s,有效期至 %2$s</string>
+    <string name="licence_invalid_header">不是 Pico Face Tracking 许可证文件</string>
+    <string name="licence_invalid_signature_damaged">签名已损坏</string>
+    <string name="licence_invalid_signature_mismatch">签名不匹配:文件已被修改,或不是正版许可证</string>
+    <string name="licence_invalid_end_date">无法读取到期日期</string>
+    <string name="licence_invalid_licensee">许可证中没有被授权人</string>
+
+    <!-- Settings screen. -->
+    <string name="section_tracking">1. 追踪</string>
+    <string name="tracking_switch">面部和眼动追踪</string>
+    <string name="eyes_switch">眼睛和眉毛</string>
+    <string name="mouth_switch">嘴、下巴、脸颊和舌头</string>
+    <string name="parts_help">取消勾选某个部位后,该部位将以中性状态发送(眼睛睁开并直视前方,或嘴部不动),另一个部位继续追踪。</string>
+    <string name="headset_eye_off">头显的 设置 → LAB 中“眼动追踪”已关闭。请在那里开启;头显关闭的功能,本应用无法追踪。</string>
+    <string name="headset_face_off">头显的 设置 → LAB 中“面部追踪”已关闭。请在那里开启;头显关闭的功能,本应用无法追踪。</string>
+    <string name="headset_both_off">头显的 设置 → LAB 中“眼动追踪”和“面部追踪”已关闭。请在那里开启;头显关闭的功能,本应用无法追踪。</string>
+    <string name="pause_for_other_apps">当其他应用(例如 PICO Connect)使用眼动追踪和面部追踪时暂停(PICO Connect 会自行向 VRCFaceTracking 的 Pico4SAFT 模块提供数据)</string>
+
+    <string name="section_adjustments">追踪调整(支持者)</string>
+    <string name="adjustments_features">伸舌头、睁眼最大幅度、眨眼强度、平滑处理,以及全部 52 种表情的编辑器。</string>
+    <string name="adjustments_not_in_build">%1$s此版本不包含这些功能:GitHub Releases 页面上的 APK 包含它们,使用支持者许可证解锁。许可证暂未提供。</string>
+    <string name="adjustments_locked">%1$s这些功能使用支持者许可证文件解锁,许可证暂未提供。如果您已有许可证,请将 .licence 文件放在 Install face tracking app.bat 旁边并运行它,或在此处导入。</string>
+    <string name="licence_ended">您的许可证(%1$s)已到期。请导入新的许可证文件。</string>
+    <string name="licence_unlocked">已解锁,%1$s。感谢您对本应用的支持。</string>
+    <string name="import_licence">导入许可证文件</string>
+    <string name="import_another_licence">导入其他许可证文件</string>
+    <string name="licence_unreadable">无法读取许可证文件:%1$s</string>
+    <string name="licence_file_empty">文件为空</string>
+    <string name="licence_not_imported">未导入该文件:%1$s。</string>
+
+    <string name="section_connection">连接</string>
+    <string name="paired_by_key">已通过密钥配对。电脑地址可以变化,数据已加密。下方的地址不会被使用。</string>
+    <string name="paired_by_address">已通过地址配对(无配对密钥)。通过配对码配对可加密数据,并在电脑地址变化后继续工作;需要在 VRCFaceTracking 中安装“Pico 4 Face Tracking”。</string>
+    <string name="remove_pairing_key">删除配对密钥</string>
+    <string name="pair_by_code">通过配对码配对</string>
+    <string name="pair_again">重新通过配对码配对(新密钥)</string>
+    <string name="pairing_code_hint">6 位配对码</string>
+    <string name="pair">配对</string>
+    <string name="cancel_pairing">取消配对</string>
+    <string name="pc_address_help">已配对的电脑(运行 VRCFaceTracking 的电脑)。只有这台电脑能接收您的追踪数据。留空则与网络中第一台运行 VRCFaceTracking 的电脑配对;清空即可重新配对,例如电脑获得新地址时。</string>
+    <string name="pc_address_hint">留空:自动配对</string>
+    <string name="pc_address_invalid">请输入电脑的地址,例如 192.168.1.20,或留空</string>
+    <string name="start_at_boot">头显开机时启动</string>
+
+    <string name="section_pc">电脑端</string>
+    <string name="pc_help">在电脑上安装 VRCFaceTracking,然后在 VRCFaceTracking 中安装“Pico 4 Face Tracking”模块(可通过配对码配对),或 thoricelli 的 Pico Facial Data Module(通过地址配对)。Pico4SAFTExtTrackingModule 可以继续保留:它只在电脑上运行 PICO Connect 或 Streaming Assistant 时启动。只有佩戴头显时才会传输追踪数据。</string>
+    <string name="section_no_connection">如果电脑无法连接</string>
+    <string name="no_connection_help">只有在 VRCFaceTracking 启动后 5 秒内此头显作出响应,Pico 4 Face Tracking 才会接管眼动追踪和面部追踪。如果在此处开启追踪之前(或头显开机之前)就已启动 VRCFaceTracking,其日志会显示“No PICO headset answered”:请开启追踪,然后重启 VRCFaceTracking。</string>
+    <string name="section_after_restart">重启后</string>
+    <string name="after_restart_help">如果追踪没有自动恢复,请打开一次本应用。它会以面板形式在 Virtual Desktop 旁边打开,不会关闭 Virtual Desktop。</string>
+    <string name="stop_and_close">停止追踪并关闭应用</string>
+    <string name="stop_and_close_help">下次打开本应用或重启头显时,追踪会重新开始。如需保持关闭,请改为关闭顶部的“面部和眼动追踪”。</string>
+
+    <!-- Test tab. -->
+    <string name="tab_settings">设置</string>
+    <string name="tab_test">测试</string>
+    <string name="test_note">打开此标签页时,即使在设置标签页中关闭了追踪,头显的眼动追踪和面部追踪也会运行。此处不会向电脑发送任何数据。</string>
+    <string name="test_section_eyes">眼睛</string>
+    <string name="test_eyes_help">环顾四周:圆点会跟随您的视线(大圆点:双眼,蓝色:左眼,橙色:右眼)。方框边缘距正前方约 30°。眨眼或闭眼时,下方的眼睑会随之闭合。</string>
+    <string name="test_section_mouth">嘴和下巴</string>
+    <string name="test_accuracy">PICO 的面部和嘴部追踪可能不够准确:有些表情只会轻微变化,在您没有做该表情时也会变化,或完全不变化。这里显示的是头显检测到的内容,也就是 VRCFaceTracking 收到的内容。</string>
+    <string name="test_mouth_help">试着张嘴、微笑、噘嘴、鼓起脸颊或伸出舌头。</string>
+    <string name="test_section_parameters">全部参数</string>
+    <string name="test_parameters_help">头显报告的原始数值(在眼睛和嘴部开关以及追踪调整之前)。灰色:头显未检测到面部的该部分。</string>
+    <string name="test_group_eye">眼睛</string>
+    <string name="test_left_gaze_x">左眼视线 x</string>
+    <string name="test_left_gaze_y">左眼视线 y</string>
+    <string name="test_right_gaze_x">右眼视线 x</string>
+    <string name="test_right_gaze_y">右眼视线 y</string>
+    <string name="test_combined_gaze_x">双眼视线 x</string>
+    <string name="test_combined_gaze_y">双眼视线 y</string>
+    <string name="test_left_openness">左眼睁开程度</string>
+    <string name="test_right_openness">右眼睁开程度</string>
+    <string name="test_left_pupil">左瞳孔 (mm)</string>
+    <string name="test_right_pupil">右瞳孔 (mm)</string>
+    <string name="test_group_other">其他</string>
+    <string name="test_laughing">大笑 (概率)</string>
+    <string name="test_starting">正在启动头显的眼动追踪和面部追踪</string>
+    <string name="test_waiting_headset">正在等待头显开始追踪(%1$s)。头显是否已戴好?</string>
+    <string name="test_no_data">追踪已启动,正在等待数据。头显是否已戴好?</string>
+    <string name="test_live">实时。眼睛:%1$s,面部:%2$s。</string>
+    <string name="test_seen">已检测到</string>
+    <string name="test_not_seen">未检测到</string>
+    <string name="eye_left">"左眼 "</string>
+    <string name="eye_right">"右眼 "</string>
+    <string name="eye_not_seen">未检测到</string>
+    <string name="eye_open_suffix" formatted="false">% 睁开</string>
+    <!-- Headings of Expressions.GROUPS, in the same order. -->
+    <string-array name="test_expression_groups">
+        <item>眼部表情</item>
+        <item>眉毛</item>
+        <item>脸颊</item>
+        <item>鼻子</item>
+        <item>下巴</item>
+        <item>嘴</item>
+        <item>舌头</item>
+    </string-array>
+</resources>

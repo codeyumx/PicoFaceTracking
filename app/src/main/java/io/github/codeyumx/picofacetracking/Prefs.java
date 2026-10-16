@@ -97,6 +97,15 @@ final class Prefs {
         preferences.edit().putString("licence", licence).apply();
     }
 
+    /** Code of the chosen Language, or empty to follow the headset's language. */
+    String language() {
+        return preferences.getString("language", "");
+    }
+
+    void setLanguage(String code) {
+        preferences.edit().putString("language", code).apply();
+    }
+
     /** Parses a dotted IPv4 address without a DNS lookup. Returns null for anything else, including 0.0.0.0. */
     static Inet4Address parseIpv4(String text) {
         String[] parts = text.trim().split("\\.", -1);

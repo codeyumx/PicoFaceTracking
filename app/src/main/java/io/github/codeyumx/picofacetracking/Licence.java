@@ -1,5 +1,6 @@
 package io.github.codeyumx.picofacetracking;
 
+import android.content.Context;
 import android.util.Base64;
 
 import java.nio.charset.StandardCharsets;
@@ -43,26 +44,37 @@ final class Licence {
         return expires != null && LocalDate.now().isAfter(expires);
     }
 
-    String describe() {
-        return "licensed to " + licensee + (expires != null ? ", until " + expires : "");
+    String describe(Context context) {
+        return expires != null
+                ? context.getString(R.string.licence_to_until, licensee, expires.toString())
+                : context.getString(R.string.licence_to, licensee);
     }
 
-    /** Parses a licence file and checks its signature. Throws IllegalArgumentException with the reason. */
+    /** A licence file that was rejected; reason is the string resource that says why. */
+    static final class Invalid extends IllegalArgumentException {
+        final int reason;
+
+        Invalid(int reason) {
+            this.reason = reason;
+        }
+    }
+
+    /** Parses a licence file and checks its signature. Throws Invalid with the reason. */
     static Licence parse(String text) {
         String normalized = text.replace("\r\n", "\n");
         int signatureLine = normalized.indexOf("\n" + SIGNATURE);
         if (!normalized.startsWith(HEADER + "\n") || signatureLine < 0)
-            throw new IllegalArgumentException("not a Pico Face Tracking licence file");
+            throw new Invalid(R.string.licence_invalid_header);
 
         String signed = normalized.substring(0, signatureLine + 1);
         byte[] signature;
         try {
             signature = Base64.decode(normalized.substring(signatureLine + 1 + SIGNATURE.length()).trim(), Base64.DEFAULT);
         } catch (IllegalArgumentException e) {
-            throw new IllegalArgumentException("the signature is damaged");
+            throw new Invalid(R.string.licence_invalid_signature_damaged);
         }
         if (!verify(signed.getBytes(StandardCharsets.UTF_8), signature))
-            throw new IllegalArgumentException("the signature does not match: the file was changed or is not a real licence");
+            throw new Invalid(R.string.licence_invalid_signature_mismatch);
 
         String licensee = null;
         LocalDate expires = null;
@@ -73,12 +85,12 @@ final class Licence {
                 try {
                     expires = LocalDate.parse(line.substring(EXPIRES.length()).trim());
                 } catch (DateTimeParseException e) {
-                    throw new IllegalArgumentException("the end date is not readable");
+                    throw new Invalid(R.string.licence_invalid_end_date);
                 }
             }
         }
         if (licensee == null || licensee.isEmpty())
-            throw new IllegalArgumentException("the licence names no licensee");
+            throw new Invalid(R.string.licence_invalid_licensee);
         return new Licence(licensee, expires);
     }
 
@@ -95,7 +107,7 @@ final class Licence {
             return null;
         try {
             return parse(text);
-        } catch (IllegalArgumentException e) {
+        } catch (Invalid e) {
             return null;
         }
     }

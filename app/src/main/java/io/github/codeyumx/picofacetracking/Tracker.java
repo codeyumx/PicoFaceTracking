@@ -27,10 +27,10 @@ import java.nio.charset.StandardCharsets;
  */
 final class Tracker implements Runnable {
     interface Listener {
-        void onStatus(String status);
+        void onStatus(Text status);
 
         /** The tracker stopped for good. */
-        void onFailure(String message);
+        void onFailure(Text reason);
 
         /** No PC was set, and this PC sent the first discovery request; only it is answered from now on. */
         void onPaired(Inet4Address pc);
@@ -105,7 +105,7 @@ final class Tracker implements Runnable {
             }
         } catch (EyeTrackingService.ServiceException | IOException | RuntimeException e) {
             Log.e(TAG, "Tracking stopped", e);
-            listener.onFailure(e.getMessage() != null ? e.getMessage() : e.toString());
+            listener.onFailure(Text.literal(e.getMessage() != null ? e.getMessage() : e.toString()));
         } finally {
             if (service != null) {
                 try {
@@ -131,14 +131,14 @@ final class Tracker implements Runnable {
 
     /**
      * Waits for a discovery request: with a key, a valid version 2 DISCOVER from any local PC; without one, from the
-     * allowed client (or, when unpaired, the first local PC). Returns null once stopped.
+     * allowed client (or, when unpaired, the first local PC). Returns null once stopped, or after reporting a failure.
      */
     private Request discover() throws IOException {
         listener.onStatus(pairing != null
-                ? "Waiting for VRCFaceTracking on the PC paired by key"
+                ? new Text(R.string.status_waiting_key)
                 : allowedClient != null
-                ? "Waiting for VRCFaceTracking on " + allowedClient.getHostAddress()
-                : "Waiting for VRCFaceTracking on any PC on this network, it pairs with the first one");
+                ? new Text(R.string.status_waiting_address, allowedClient.getHostAddress())
+                : new Text(R.string.status_waiting_any));
         InetAddress group = InetAddress.getByAddress(MULTICAST_GROUP);
 
         try (MulticastSocket socket = new MulticastSocket(null)) {
@@ -146,7 +146,9 @@ final class Tracker implements Runnable {
             try {
                 socket.bind(new InetSocketAddress(PORT));
             } catch (IOException e) {
-                throw new IOException("UDP port " + PORT + " is in use, probably by the old adb-started face tracking daemon. Restart the headset and turn tracking on again.", e);
+                Log.e(TAG, "UDP port " + PORT + " is in use", e);
+                listener.onFailure(new Text(R.string.error_port_in_use_tracking, PORT));
+                return null;
             }
             socket.setSoTimeout(DISCOVERY_RECEIVE_TIMEOUT_MS);
 
@@ -253,7 +255,7 @@ final class Tracker implements Runnable {
                     return;
                 }
             }
-            listener.onStatus("Connected to " + pc + (session != null ? " (paired by key, encrypted)" : "") + ", starting tracking");
+            listener.onStatus(new Text(session != null ? R.string.status_connected_encrypted : R.string.status_connected, pc));
 
             while (running) {
                 long now = SystemClock.elapsedRealtime();
@@ -294,7 +296,7 @@ final class Tracker implements Runnable {
                         // PICO Connect (or another app) already feeds face tracking to the PC; do not send it twice.
                         // Pings continue meanwhile, so the session stays open and tracking starts once the other app stops.
                         if (pauseForOtherApps && service.otherAppRunning()) {
-                            listener.onStatus("Connected to " + pc + ", paused: another app is using eye and face tracking, for example PICO Connect");
+                            listener.onStatus(new Text(R.string.status_paused, pc));
                         } else {
                             service.acquire(START_TIMEOUT_MS);
                             started = true;
@@ -307,7 +309,7 @@ final class Tracker implements Runnable {
                         if (!e.getMessage().equals(lastStartError))
                             Log.w(TAG, "Cannot start tracking yet: " + e.getMessage());
                         lastStartError = e.getMessage();
-                        listener.onStatus("Connected to " + pc + ", waiting for the headset to start tracking (" + e.getMessage() + ")");
+                        listener.onStatus(new Text(R.string.status_waiting_headset, pc, e.getMessage()));
                         face = closeQuietly(face);
                         eye = closeQuietly(eye);
                         if (started)
@@ -342,8 +344,8 @@ final class Tracker implements Runnable {
                             lastSent = now;
                     }
                     listener.onStatus(now - lastSent < STREAMING_GRACE_MS
-                            ? "Sending tracking to " + pc
-                            : "Connected to " + pc + ", tracking started, waiting for data (is the headset on your head?)");
+                            ? new Text(R.string.status_sending, pc)
+                            : new Text(R.string.status_no_data, pc));
                 }
 
                 if (now >= nextPing) {

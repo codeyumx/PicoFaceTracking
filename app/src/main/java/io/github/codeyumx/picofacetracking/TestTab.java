@@ -25,12 +25,14 @@ final class TestTab {
     private final TrackingFrame frame = new TrackingFrame();
     private final Choreographer.FrameCallback tick = this::tick;
 
+    private final MainActivity activity;
     private TrackingPreview preview;
     private long seenFrame;
-    private String shownStatus;
+    private Text shownStatus;
     private int shownSeen = -1;
 
     TestTab(MainActivity activity) {
+        this.activity = activity;
         LinearLayout content = new LinearLayout(activity);
         content.setOrientation(LinearLayout.VERTICAL);
         int padding = activity.dp(24);
@@ -38,13 +40,10 @@ final class TestTab {
 
         status = activity.text("", 16);
         content.addView(status);
-        content.addView(activity.text("While this tab is open, the headset's eye and face tracking runs even if tracking "
-                + "is switched off on the Settings tab. Nothing is sent to the PC from here.", 15));
+        content.addView(activity.text(activity.getString(R.string.test_note), 15));
 
-        content.addView(activity.heading("Eyes"));
-        content.addView(activity.text("Look around: the dots follow your eyes (big dot: both eyes, blue: left eye, "
-                + "orange: right eye). The edges of the square are about 30° from straight ahead. Blink or close your "
-                + "eyes: the eyelids below close with them.", 15));
+        content.addView(activity.heading(R.string.test_section_eyes));
+        content.addView(activity.text(activity.getString(R.string.test_eyes_help), 15));
         gaze = new GazeView(activity);
         content.addView(gaze);
         eyes = new EyesView(activity);
@@ -53,43 +52,42 @@ final class TestTab {
         eyesLayout.setMargins(0, activity.dp(16), 0, 0);
         content.addView(eyes, eyesLayout);
 
-        content.addView(activity.heading("Mouth and jaw"));
-        TextView accuracy = activity.text("PICO's face and mouth tracking may not be accurate: some expressions move "
-                + "only a little, move when you are not making them, or do not move at all. This shows what the headset "
-                + "detects, which is what VRCFaceTracking receives.", 15);
+        content.addView(activity.heading(R.string.test_section_mouth));
+        TextView accuracy = activity.text(activity.getString(R.string.test_accuracy), 15);
         accuracy.setTextColor(MainActivity.WARNING_COLOR);
         content.addView(accuracy);
-        content.addView(activity.text("Open your mouth, smile, pucker, puff your cheeks or stick out your tongue.", 15));
+        content.addView(activity.text(activity.getString(R.string.test_mouth_help), 15));
         mouth = new MouthView(activity);
         content.addView(mouth);
 
-        content.addView(activity.heading("All parameters"));
-        content.addView(activity.text("The values as the headset reports them, before the eyes and mouth switches and "
-                + "the tracking adjustments. Grey: the headset does not see that part of the face.", 15));
+        content.addView(activity.heading(R.string.test_section_parameters));
+        content.addView(activity.text(activity.getString(R.string.test_parameters_help), 15));
         table = new ParameterTable(activity);
-        table.addHeading("Eye");
-        table.addRow("Left gaze x", -1f, 1f);
-        table.addRow("Left gaze y", -1f, 1f);
-        table.addRow("Right gaze x", -1f, 1f);
-        table.addRow("Right gaze y", -1f, 1f);
-        table.addRow("Combined gaze x", -1f, 1f);
-        table.addRow("Combined gaze y", -1f, 1f);
-        table.addRow("Left openness", 0f, 1f);
-        table.addRow("Right openness", 0f, 1f);
-        table.addRow("Left pupil (mm)", 0f, 8f);
-        table.addRow("Right pupil (mm)", 0f, 8f);
+        table.addHeading(activity.getString(R.string.test_group_eye));
+        table.addRow(activity.getString(R.string.test_left_gaze_x), -1f, 1f);
+        table.addRow(activity.getString(R.string.test_left_gaze_y), -1f, 1f);
+        table.addRow(activity.getString(R.string.test_right_gaze_x), -1f, 1f);
+        table.addRow(activity.getString(R.string.test_right_gaze_y), -1f, 1f);
+        table.addRow(activity.getString(R.string.test_combined_gaze_x), -1f, 1f);
+        table.addRow(activity.getString(R.string.test_combined_gaze_y), -1f, 1f);
+        table.addRow(activity.getString(R.string.test_left_openness), 0f, 1f);
+        table.addRow(activity.getString(R.string.test_right_openness), 0f, 1f);
+        table.addRow(activity.getString(R.string.test_left_pupil), 0f, 8f);
+        table.addRow(activity.getString(R.string.test_right_pupil), 0f, 8f);
+        // Expression names stay as VRCFaceTracking's parameter names; only the group headings are translated.
+        String[] groupHeadings = activity.getResources().getStringArray(R.array.test_expression_groups);
         int row = 0;
-        for (String group : Expressions.GROUPS) {
-            table.addHeading(group.equals("Eye") ? "Eye expressions" : group);
+        for (int group = 0; group < Expressions.GROUPS.length; group++) {
+            table.addHeading(groupHeadings[group]);
             for (int i = 0; i < Expressions.COUNT; i++) {
-                if (Expressions.group(i).equals(group)) {
+                if (Expressions.group(i).equals(Expressions.GROUPS[group])) {
                     table.addRow(Expressions.label(i), 0f, 1f);
                     expressionRows[row++] = i;
                 }
             }
         }
-        table.addHeading("Other");
-        table.addRow("Laughing (probability)", 0f, 1f);
+        table.addHeading(activity.getString(R.string.test_group_other));
+        table.addRow(activity.getString(R.string.test_laughing), 0f, 1f);
         laughingRow = EYE_ROWS + Expressions.COUNT;
         LinearLayout.LayoutParams tableLayout = new LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
@@ -111,7 +109,7 @@ final class TestTab {
         seenFrame = 0;
         shownStatus = null;
         shownSeen = -1;
-        status.setText("Starting the headset's eye and face tracking");
+        status.setText(R.string.test_starting);
         Choreographer.getInstance().postFrameCallback(tick);
     }
 
@@ -128,14 +126,16 @@ final class TestTab {
             return;
         Choreographer.getInstance().postFrameCallback(tick);
 
-        String waiting = preview.status();
+        Text waiting = preview.status();
         int seen = (frame.eyesSeen ? 1 : 0) | (frame.faceSeen ? 2 : 0);
         // setText lays the screen out again, so only on a change.
         if (waiting != null ? !waiting.equals(shownStatus) : shownStatus != null || seen != shownSeen) {
             shownStatus = waiting;
             shownSeen = seen;
-            status.setText(waiting != null ? waiting
-                    : "Live. Eyes " + (frame.eyesSeen ? "seen" : "not seen") + ", face " + (frame.faceSeen ? "seen" : "not seen") + ".");
+            status.setText(waiting != null ? waiting.get(activity)
+                    : activity.getString(R.string.test_live,
+                    activity.getString(frame.eyesSeen ? R.string.test_seen : R.string.test_not_seen),
+                    activity.getString(frame.faceSeen ? R.string.test_seen : R.string.test_not_seen)));
         }
 
         long newest = preview.copyLatest(frame, seenFrame);
