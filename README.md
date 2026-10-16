@@ -21,7 +21,8 @@ not available yet: if the app gets enough interest, more settings will follow, a
 access to them.
 
 Closing the settings panel leaves tracking running in the background. The **Stop tracking and close the app** button at
-the bottom switches tracking off and closes the app; tracking stays off until it is switched on again.
+the bottom stops tracking and closes the app; tracking starts again the next time the app is opened or the headset
+restarts. To keep tracking off, switch off **Face and eye tracking** instead.
 
 VRCFaceTracking's Pico 4 Face Tracking module only claims eye and face tracking if the headset answers within 5 seconds
 of VRCFaceTracking starting. Switch tracking on in the app first; if VRCFaceTracking was already running (its log says
@@ -60,6 +61,25 @@ unlock with a supporter licence file, which is not available yet (see [Open core
 
 PICO's own switches (Settings > LAB, `key_et_enable` / `key_ft_enable` in `Settings.System`) cannot be changed by a
 sideloaded app. The app reads them and shows a warning under the eyes and mouth switches while either is off.
+
+## Test tab
+
+The **Test** tab next to **Settings** shows what the headset tracks right now, with or without a PC, so you can check
+that it sees your eyes and face:
+
+- **Eyes**: a square with dots where you look (big dot: both eyes; blue: left; orange: right; the edges are about 30°
+  from straight ahead), and two drawn eyes whose irises follow your gaze and whose eyelids close when you blink or
+  close your eyes. These use the values VRCFaceTracking receives from the module.
+- **Mouth and jaw**: a drawn lower face that opens its jaw, moves it sideways, smiles, frowns, puckers, puffs its
+  cheeks and sticks out its tongue. PICO's face and mouth tracking may not be accurate, so some expressions move
+  little, move on their own, or not at all.
+- **All parameters**: a slider and number for every eye value (gaze, openness, pupil size) and each of the 52
+  expressions, updated with every frame. These are the headset's values before the eyes and mouth switches and the
+  tracking adjustments; grey means the headset does not see that part.
+
+The tab runs the headset's eye and face tracking while it is shown, even when tracking is switched off, and stops it
+when you leave the tab or close the panel. It shares the running tracking with the connection to the PC, so it does not
+interrupt VRCFaceTracking.
 
 ## Pairing by code (protocol version 2, optional)
 

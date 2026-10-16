@@ -16,10 +16,12 @@ import android.provider.Settings;
 import android.text.InputFilter;
 import android.text.InputType;
 import android.text.method.DigitsKeyListener;
+import android.view.Gravity;
 import android.view.View;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
+import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
@@ -34,7 +36,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
-/** Settings screen: tracking on/off and pause option, the supporter tracking adjustments, then the connection. */
+/** Two tabs: Settings (tracking on/off, options, adjustments, connection) and Test (what the headset tracks now). */
 public final class MainActivity extends Activity {
     private static final String[] TRACKING_PERMISSIONS = {
             "com.picovr.permission.EYE_TRACKING",
@@ -42,10 +44,11 @@ public final class MainActivity extends Activity {
     };
     private static final long REFRESH_MS = 500;
     private static final int ON_COLOR = 0xFF2E7D32;
-    private static final int WARNING_COLOR = 0xFFE65100;
+    static final int WARNING_COLOR = 0xFFE65100;
     private static final int IMPORT_LICENCE = 1;
     /** Licence files are a few hundred bytes. */
     private static final int MAX_LICENCE_BYTES = 4096;
+    private static final String SHOWING_TEST = "showing_test";
 
     private final Handler handler = new Handler(Looper.getMainLooper());
     private final Runnable refresh = new Runnable() {
@@ -76,6 +79,12 @@ public final class MainActivity extends Activity {
     private TextView licenceInfo;
     private TextView headsetToggles;
     private boolean showingState;
+    private TestTab testTab;
+    private View settingsPage;
+    private TextView settingsTabButton;
+    private TextView testTabButton;
+    private boolean showingTest;
+    private boolean resumed;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -85,11 +94,7 @@ public final class MainActivity extends Activity {
         LinearLayout content = new LinearLayout(this);
         content.setOrientation(LinearLayout.VERTICAL);
         int padding = dp(24);
-        content.setPadding(padding, padding, padding, padding);
-
-        TextView title = text(getString(R.string.app_name), 24);
-        title.setTypeface(Typeface.DEFAULT_BOLD);
-        content.addView(title);
+        content.setPadding(padding, dp(8), padding, padding);
 
         content.addView(heading("1. Tracking"));
         tracking = checkCard("Face and eye tracking", 22, 40, 84);
@@ -173,22 +178,52 @@ public final class MainActivity extends Activity {
         content.addView(text("If tracking does not come back by itself, open this app once. It opens as a panel next to "
                 + "Virtual Desktop without closing it.", 15));
 
-        // Closing the panel normally leaves tracking running; this button is for the rare full stop.
+        // Closing the panel normally leaves tracking running; this button is for the rare full stop. The tracking
+        // switch stays on, so tracking comes back the next time the app opens or the headset starts.
         Button close = new Button(this);
         close.setText("Stop tracking and close the app");
         close.setOnClickListener(view -> {
-            turnOff();
+            TrackingService.stop(this);
             finishAndRemoveTask();
         });
         LinearLayout.LayoutParams closeLayout = new LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
         closeLayout.setMargins(0, dp(20), 0, 0);
         content.addView(close, closeLayout);
-        content.addView(text("Tracking stays off until you switch it on again in this app.", 15));
+        content.addView(text("Tracking starts again the next time you open this app or restart the headset. To keep it "
+                + "off, switch off \"Face and eye tracking\" at the top instead.", 15));
 
         ScrollView scroll = new ScrollView(this);
         scroll.addView(content);
-        setContentView(scroll);
+        settingsPage = scroll;
+        testTab = new TestTab(this);
+
+        LinearLayout root = new LinearLayout(this);
+        root.setOrientation(LinearLayout.VERTICAL);
+        LinearLayout header = new LinearLayout(this);
+        header.setOrientation(LinearLayout.HORIZONTAL);
+        header.setGravity(Gravity.CENTER_VERTICAL);
+        header.setPadding(padding, padding, padding, dp(8));
+        TextView title = text(getString(R.string.app_name), 24);
+        title.setTypeface(Typeface.DEFAULT_BOLD);
+        header.addView(title, new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f));
+        settingsTabButton = tabButton("Settings");
+        settingsTabButton.setOnClickListener(view -> showTab(false));
+        header.addView(settingsTabButton);
+        testTabButton = tabButton("Test");
+        testTabButton.setOnClickListener(view -> showTab(true));
+        LinearLayout.LayoutParams testLayout = new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+        testLayout.setMargins(dp(8), 0, 0, 0);
+        header.addView(testTabButton, testLayout);
+        root.addView(header);
+
+        FrameLayout pages = new FrameLayout(this);
+        pages.addView(settingsPage);
+        pages.addView(testTab.view());
+        root.addView(pages, new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, 0, 1f));
+        setContentView(root);
+        showTab(savedInstanceState != null && savedInstanceState.getBoolean(SHOWING_TEST));
 
         requestMissingPermissions();
     }
@@ -200,14 +235,50 @@ public final class MainActivity extends Activity {
         if (prefs.enabled())
             TrackingService.start(this);
         handler.post(refresh);
+        resumed = true;
+        if (showingTest)
+            testTab.start();
     }
 
     @Override
     protected void onPause() {
         handler.removeCallbacks(refresh);
+        resumed = false;
+        testTab.stop();
         if (!prefs.enabled())
             prefs.setPcAddress(pcAddress.getText().toString().trim());
         super.onPause();
+    }
+
+    @Override
+    protected void onSaveInstanceState(Bundle state) {
+        super.onSaveInstanceState(state);
+        state.putBoolean(SHOWING_TEST, showingTest);
+    }
+
+    /** The Test tab runs the headset's tracking only while it is shown. */
+    private void showTab(boolean test) {
+        showingTest = test;
+        settingsPage.setVisibility(test ? View.GONE : View.VISIBLE);
+        testTab.view().setVisibility(test ? View.VISIBLE : View.GONE);
+        settingsTabButton.setSelected(!test);
+        testTabButton.setSelected(test);
+        if (test && resumed)
+            testTab.start();
+        else
+            testTab.stop();
+    }
+
+    private TextView tabButton(String label) {
+        TextView tab = text(label, 18);
+        tab.setTypeface(Typeface.DEFAULT_BOLD);
+        tab.setPadding(dp(20), dp(10), dp(20), dp(10));
+        tab.setClickable(true);
+        StateListDrawable states = new StateListDrawable();
+        states.addState(new int[]{android.R.attr.state_selected}, card(0x332E7D32, ON_COLOR));
+        states.addState(new int[0], card(0x14808080, 0x66808080));
+        tab.setBackground(new RippleDrawable(ColorStateList.valueOf(0x33FFFFFF), states, null));
+        return tab;
     }
 
     /** The paid adjustments when unlocked; otherwise what they are and how to unlock them. */
@@ -428,7 +499,7 @@ public final class MainActivity extends Activity {
             requestPermissions(missing.toArray(new String[0]), 0);
     }
 
-    private TextView heading(String label) {
+    TextView heading(String label) {
         TextView heading = text(label, 18);
         heading.setTypeface(Typeface.DEFAULT_BOLD);
         heading.setPadding(0, dp(20), 0, dp(4));
@@ -496,7 +567,7 @@ public final class MainActivity extends Activity {
         return card;
     }
 
-    private TextView text(String value, int sizeSp) {
+    TextView text(String value, int sizeSp) {
         TextView view = new TextView(this);
         view.setText(value);
         view.setTextSize(sizeSp);
@@ -504,7 +575,7 @@ public final class MainActivity extends Activity {
         return view;
     }
 
-    private int dp(int value) {
+    int dp(int value) {
         return Math.round(value * getResources().getDisplayMetrics().density);
     }
 }

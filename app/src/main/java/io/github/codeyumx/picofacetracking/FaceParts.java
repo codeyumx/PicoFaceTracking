@@ -8,12 +8,7 @@ import java.nio.ByteBuffer;
  * screen swaps in a new one, which a running tracker picks up on its next frame.
  */
 final class FaceParts {
-    // Offsets in the payload: 384 bytes of face data, then 152 bytes of eye data (little-endian).
-    private static final int WEIGHTS = 8;
-    private static final int EYE = 384;
-    private static final int[] GAZE_VECTORS = {EYE + 48, EYE + 60, EYE + 72};
-    private static final int LEFT_OPENNESS = EYE + 84;
-    private static final int RIGHT_OPENNESS = EYE + 88;
+    private static final int[] GAZE_VECTORS = {TrackingFrame.LEFT_GAZE, TrackingFrame.RIGHT_GAZE, TrackingFrame.COMBINED_GAZE};
 
     private static volatile FaceParts current = new FaceParts(true, true);
 
@@ -39,12 +34,12 @@ final class FaceParts {
             return;
         for (int i = 0; i < Expressions.COUNT; i++) {
             if (!(Expressions.isEyePart(i) ? eyes : mouth))
-                payload.putFloat(WEIGHTS + 4 * i, 0f);
+                payload.putFloat(TrackingFrame.WEIGHTS + 4 * i, 0f);
         }
         if (!eyes) {
             // Open rather than frozen mid-blink. The module only reads the x and y of each gaze vector.
-            payload.putFloat(LEFT_OPENNESS, 1f);
-            payload.putFloat(RIGHT_OPENNESS, 1f);
+            payload.putFloat(TrackingFrame.LEFT_OPENNESS, 1f);
+            payload.putFloat(TrackingFrame.RIGHT_OPENNESS, 1f);
             for (int vector : GAZE_VECTORS) {
                 payload.putFloat(vector, 0f);
                 payload.putFloat(vector + 4, 0f);
