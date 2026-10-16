@@ -26,11 +26,17 @@ final class EyeTrackingService {
     /** The combined eye and face tracking camera. */
     private static final int CAMERA = 5;
 
-    static final int EYE_TRACKING = 0x4;
-    static final int FACE_TRACKING = 0x8;
+    /** Eye tracking (0x4) and face tracking (0x8), the algorithms this app runs. */
+    private static final int EYE_AND_FACE = 0x4 | 0x8;
 
     static final int MEMORY_EYE_TRACKING = 2;
     static final int MEMORY_FACE_TRACKING = 3;
+
+    /** Users in this app (the tracker and the Test tab) that hold the running algorithms; see acquire. */
+    private static final Object LEASE = new Object();
+    private static int holders;
+    /** Whether another app ran eye or face tracking when this app started it. */
+    private static boolean otherAppAtStart;
 
     private final IBinder binder;
 
@@ -51,14 +57,50 @@ final class EyeTrackingService {
         return new EyeTrackingService(binder);
     }
 
-    /** Starts the tracking algorithms. This fails while the headset is not worn. */
-    void startAlgorithm(int algorithms, int timeoutMs) throws ServiceException {
+    /**
+     * Starts eye and face tracking for one more user in this app. The first user starts the algorithms and the last
+     * release stops them, so the Test tab and the tracker do not stop each other. Fails while the headset is not worn.
+     */
+    void acquire(int timeoutMs) throws ServiceException {
+        synchronized (LEASE) {
+            if (holders == 0) {
+                otherAppAtStart = algorithmRunning();
+                startAlgorithm(timeoutMs);
+            }
+            holders++;
+        }
+    }
+
+    /** Ends one acquire; returns true when that was the last user and the camera is released. */
+    boolean release() throws ServiceException {
+        synchronized (LEASE) {
+            if (holders == 0)
+                return false;
+            holders--;
+            if (holders > 0)
+                return false;
+            stopAlgorithm();
+            return true;
+        }
+    }
+
+    /**
+     * Whether another app, such as PICO Connect, runs eye or face tracking. While this app runs it, the service cannot
+     * tell the apps apart, so the answer from when this app started it is used.
+     */
+    boolean otherAppRunning() throws ServiceException {
+        synchronized (LEASE) {
+            return holders > 0 ? otherAppAtStart : algorithmRunning();
+        }
+    }
+
+    private void startAlgorithm(int timeoutMs) throws ServiceException {
         Parcel data = Parcel.obtain();
         Parcel reply = Parcel.obtain();
         try {
             data.writeInterfaceToken(DESCRIPTOR);
             data.writeInt(CAMERA);
-            data.writeString(Integer.toString(algorithms));
+            data.writeString(Integer.toString(EYE_AND_FACE));
             data.writeInt(timeoutMs);
             transact(START_ALGORITHM, data, reply);
             readStatus("StartAlgorithm", reply);
@@ -69,13 +111,13 @@ final class EyeTrackingService {
         }
     }
 
-    void stopAlgorithm(int algorithms) throws ServiceException {
+    private void stopAlgorithm() throws ServiceException {
         Parcel data = Parcel.obtain();
         Parcel reply = Parcel.obtain();
         try {
             data.writeInterfaceToken(DESCRIPTOR);
             data.writeInt(CAMERA);
-            data.writeInt(algorithms);
+            data.writeInt(EYE_AND_FACE);
             transact(STOP_ALGORITHM, data, reply);
             readStatus("StopAlgorithm", reply);
             checkResult("StopAlgorithm", reply.readInt());
@@ -85,11 +127,8 @@ final class EyeTrackingService {
         }
     }
 
-    /**
-     * Whether any client runs eye or face tracking. The service counts clients per process, so before this app
-     * starts tracking, true means another app (for example PICO Connect) is using it.
-     */
-    boolean algorithmRunning() throws ServiceException {
+    /** Whether any client runs eye or face tracking. The service counts clients per process. */
+    private boolean algorithmRunning() throws ServiceException {
         return algorithmResult("et_running") != 0 || algorithmResult("ft_running") != 0;
     }
 

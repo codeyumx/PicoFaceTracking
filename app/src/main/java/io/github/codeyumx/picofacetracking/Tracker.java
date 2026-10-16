@@ -45,12 +45,6 @@ final class Tracker implements Runnable {
     private static final byte[] PING = {'M', 'A', 'R', 'C', 'O', 0};
     private static final String PONG = "POLO";
     private static final String STOP = "STOP";
-
-    /** Pico Facial Data Module 0.3 accepts exactly 384 bytes of face data followed by 152 bytes of eye data. */
-    private static final int FACE_LENGTH = 384;
-    private static final int EYE_LENGTH = 152;
-
-    private static final int ALGORITHMS = EyeTrackingService.EYE_TRACKING | EyeTrackingService.FACE_TRACKING;
     private static final int START_TIMEOUT_MS = 1000;
     private static final long START_RETRY_MS = 1000;
     private static final long POLL_MS = 10;
@@ -230,13 +224,13 @@ final class Tracker implements Runnable {
     private void stream(EyeTrackingService service, Request request) throws IOException {
         InetSocketAddress client = request.address;
         String pc = client.getAddress().getHostAddress();
-        ByteBuffer payload = ByteBuffer.allocateDirect(FACE_LENGTH + EYE_LENGTH).order(ByteOrder.LITTLE_ENDIAN);
+        ByteBuffer payload = ByteBuffer.allocateDirect(TrackingFrame.LENGTH).order(ByteOrder.LITTLE_ENDIAN);
         PaidFeatures.FrameFilter adjustments = paid != null ? paid.newSession() : null;
         ByteBuffer incoming = ByteBuffer.allocate(64);
         ByteBuffer ping = ByteBuffer.wrap(PING);
         // Version 2: the frame is copied out of the direct buffer and encrypted into sealed.
-        byte[] frame = new byte[FACE_LENGTH + EYE_LENGTH];
-        byte[] sealed = new byte[FACE_LENGTH + EYE_LENGTH + Pairing.Session.OVERHEAD];
+        byte[] frame = new byte[TrackingFrame.LENGTH];
+        byte[] sealed = new byte[TrackingFrame.LENGTH + Pairing.Session.OVERHEAD];
 
         SharedBuffer face = null;
         SharedBuffer eye = null;
@@ -299,10 +293,10 @@ final class Tracker implements Runnable {
                     try {
                         // PICO Connect (or another app) already feeds face tracking to the PC; do not send it twice.
                         // Pings continue meanwhile, so the session stays open and tracking starts once the other app stops.
-                        if (pauseForOtherApps && service.algorithmRunning()) {
+                        if (pauseForOtherApps && service.otherAppRunning()) {
                             listener.onStatus("Connected to " + pc + ", paused: another app is using eye and face tracking, for example PICO Connect");
                         } else {
-                            service.startAlgorithm(ALGORITHMS, START_TIMEOUT_MS);
+                            service.acquire(START_TIMEOUT_MS);
                             started = true;
                             face = service.trackingDataMemory(EyeTrackingService.MEMORY_FACE_TRACKING);
                             eye = service.trackingDataMemory(EyeTrackingService.MEMORY_EYE_TRACKING);
@@ -317,15 +311,15 @@ final class Tracker implements Runnable {
                         face = closeQuietly(face);
                         eye = closeQuietly(eye);
                         if (started)
-                            stopAlgorithm(service);
+                            release(service);
                         started = false;
                     }
                 }
 
                 if (started) {
                     // Both reads run every time so neither ring buffer falls behind.
-                    boolean newFace = face.readLatest(payload, 0, FACE_LENGTH);
-                    boolean newEye = eye.readLatest(payload, FACE_LENGTH, EYE_LENGTH);
+                    boolean newFace = face.readLatest(payload, 0, TrackingFrame.FACE_LENGTH);
+                    boolean newEye = eye.readLatest(payload, TrackingFrame.FACE_LENGTH, TrackingFrame.EYE_LENGTH);
                     if (newFace && newEye) {
                         if (adjustments != null)
                             adjustments.apply(payload);
@@ -382,7 +376,7 @@ final class Tracker implements Runnable {
             closeQuietly(face);
             closeQuietly(eye);
             if (started)
-                stopAlgorithm(service);
+                release(service);
         }
     }
 
@@ -413,10 +407,10 @@ final class Tracker implements Runnable {
         return null;
     }
 
-    private static void stopAlgorithm(EyeTrackingService service) {
+    private static void release(EyeTrackingService service) {
         try {
-            service.stopAlgorithm(ALGORITHMS);
-            Log.i(TAG, "Tracking stopped, the camera is released.");
+            if (service.release())
+                Log.i(TAG, "Tracking stopped, the camera is released.");
         } catch (EyeTrackingService.ServiceException e) {
             Log.w(TAG, "Cannot stop tracking: " + e.getMessage());
         }

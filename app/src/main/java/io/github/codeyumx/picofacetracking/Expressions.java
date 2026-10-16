@@ -38,6 +38,15 @@ final class Expressions {
         throw new IllegalArgumentException(NAMES[index]);
     }
 
+    /** The position of a name in NAMES. */
+    static int index(String name) {
+        for (int i = 0; i < COUNT; i++) {
+            if (NAMES[i].equals(name))
+                return i;
+        }
+        throw new IllegalArgumentException(name);
+    }
+
     /** Eye and brow expressions belong to the eyes switch; everything else to the mouth switch. See FaceParts. */
     static boolean isEyePart(int index) {
         String group = group(index);
