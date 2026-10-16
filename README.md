@@ -160,6 +160,6 @@ merge cleanly; the root `.gitmodules` and `.github/workflows/build.yml` are the 
 GitHub Actions builds the free app (and runs its unit tests) and the PC module (and runs its tests) on every push to
 `main` and on pull requests. A `v*` tag builds the release APK with the paid features (checked out from the private
 repository with the `PRO_DEPLOY_KEY` deploy key) and publishes the APK and `Pico4FaceTracking-VRCFT.zip` as a
-GitHub release. Signing uses two repository secrets: `SIGNING_KEYSTORE_BASE64` (a PKCS#12 keystore with key alias `picofacetracking`) and `SIGNING_PASSWORD`.
+GitHub release; a tag with a suffix such as `v1.9.3-rc1` publishes a pre-release instead. Signing uses two repository secrets: `SIGNING_KEYSTORE_BASE64` (a PKCS#12 keystore with key alias `picofacetracking`) and `SIGNING_PASSWORD`.
 
 Clone with `git clone --recursive` (the module builds against the `module/VRCFaceTracking` submodule).
