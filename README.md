@@ -20,7 +20,8 @@ free except the [tracking adjustments](#tracking-adjustments-supporters), which 
 not available yet: if the app gets enough interest, more settings will follow, and a Patreon will give supporters
 access to them.
 
-The **Close** button at the top closes the settings panel; tracking keeps running in the background.
+Closing the settings panel leaves tracking running in the background. The **Stop tracking and close the app** button at
+the bottom switches tracking off and closes the app; tracking stays off until it is switched on again.
 
 VRCFaceTracking's Pico 4 Face Tracking module only claims eye and face tracking if the headset answers within 5 seconds
 of VRCFaceTracking starting. Switch tracking on in the app first; if VRCFaceTracking was already running (its log says

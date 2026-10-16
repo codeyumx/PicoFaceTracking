@@ -90,11 +90,6 @@ public final class MainActivity extends Activity {
         TextView title = text(getString(R.string.app_name), 24);
         title.setTypeface(Typeface.DEFAULT_BOLD);
         content.addView(title);
-        // Tracking runs in the background service; this only closes the settings panel.
-        Button close = new Button(this);
-        close.setText("Close (tracking keeps running in the background)");
-        close.setOnClickListener(view -> finishAndRemoveTask());
-        content.addView(close);
 
         content.addView(heading("1. Tracking"));
         tracking = checkCard("Face and eye tracking", 22, 40, 84);
@@ -177,6 +172,19 @@ public final class MainActivity extends Activity {
         content.addView(heading("After a restart"));
         content.addView(text("If tracking does not come back by itself, open this app once. It opens as a panel next to "
                 + "Virtual Desktop without closing it.", 15));
+
+        // Closing the panel normally leaves tracking running; this button is for the rare full stop.
+        Button close = new Button(this);
+        close.setText("Stop tracking and close the app");
+        close.setOnClickListener(view -> {
+            turnOff();
+            finishAndRemoveTask();
+        });
+        LinearLayout.LayoutParams closeLayout = new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+        closeLayout.setMargins(0, dp(20), 0, 0);
+        content.addView(close, closeLayout);
+        content.addView(text("Tracking stays off until you switch it on again in this app.", 15));
 
         ScrollView scroll = new ScrollView(this);
         scroll.addView(content);
