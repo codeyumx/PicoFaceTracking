@@ -10,11 +10,8 @@ namespace PicoFacialDataModule
     public class PicoFacialDataModule : ExtTrackingModule
     {
         private const int PORT = 9030;
-        /// <summary>
-        /// Upper bound for the HeadsetWaitSeconds setting. Initialize blocks VRCFaceTracking's module process, which
-        /// kills itself after 60 seconds without a packet from VRCFaceTracking.
-        /// </summary>
-        private const int MaxHeadsetWaitSeconds = 50;
+        /// <summary>How long Initialize waits for a headset before leaving eye and face tracking to other modules.</summary>
+        private static readonly TimeSpan HeadsetProbe = TimeSpan.FromSeconds(5);
         /// <summary>One discovery round of Update; Update returns after it so VRCFaceTracking can stop the module.</summary>
         private static readonly TimeSpan DiscoveryRound = TimeSpan.FromSeconds(2);
         private static readonly TimeSpan IdlePoll = TimeSpan.FromMilliseconds(500);
@@ -76,9 +73,7 @@ namespace PicoFacialDataModule
                 // to another module later, so claim them only for a headset that is there.
                 if (!_moduleSettings.ClaimWithoutHeadset && !FindHeadset())
                 {
-                    if (_tornDown)
-                        return (false, false);
-                    Logger.LogInformation($"No PICO headset answered within {HeadsetWait.TotalSeconds:0} seconds, so eye and face tracking are left to other modules. " +
+                    Logger.LogInformation($"No PICO headset answered within {HeadsetProbe.TotalSeconds:0} seconds, so eye and face tracking are left to other modules. " +
                         "To use the PICO: turn tracking on in Pico Face Tracking on the headset, then restart VRCFaceTracking.");
                     Teardown();
                     return (false, false);
@@ -179,26 +174,13 @@ namespace PicoFacialDataModule
             CloseConnector();
         }
 
-        private TimeSpan HeadsetWait => TimeSpan.FromSeconds(Math.Clamp(_moduleSettings.HeadsetWaitSeconds, 0, MaxHeadsetWaitSeconds));
-
-        /// <summary>
-        /// Waits up to <see cref="HeadsetWait"/> for a headset to answer the discovery or to offer to pair. Other modules
-        /// run in their own processes, so a headset they find claims tracking meanwhile without waiting for this.
-        /// </summary>
+        /// <summary>Waits up to <see cref="HeadsetProbe"/> for a headset to answer the discovery or to offer to pair.</summary>
         private bool FindHeadset()
         {
             var connector = _picoFacialModuleConnector!;
-            var wait = HeadsetWait;
-            Logger.LogInformation($"Waiting up to {wait.TotalSeconds:0} seconds for a PICO headset with tracking switched on.");
-            using var probe = new CancellationTokenSource(wait);
+            using var probe = new CancellationTokenSource(HeadsetProbe);
             var establish = connector.EstablishAsync(probe.Token);
-            // Teardown closes the connector, which ends the wait early.
-            Task.WaitAny(new[] { establish, _pairingListener!.HeadsetOffered }, wait);
-            if (_tornDown)
-            {
-                probe.Cancel();
-                return false;
-            }
+            Task.WaitAny(new[] { establish, _pairingListener!.HeadsetOffered }, HeadsetProbe);
 
             if (establish.IsCompletedSuccessfully)
             {

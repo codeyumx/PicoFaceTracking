@@ -15,11 +15,6 @@ namespace PicoFacialDataModule
         /// for example one for a different headset, gets them instead.
         /// </summary>
         public bool ClaimWithoutHeadset { get; set; }
-        /// <summary>
-        /// How long VRCFaceTracking's start waits for the headset before leaving eye and face tracking to other modules.
-        /// At most 50: VRCFaceTracking stops a module that does not answer within 60 seconds.
-        /// </summary>
-        public int HeadsetWaitSeconds { get; set; } = 45;
         public TrackingSettings TrackingSettings { get; set; } = new();
     }
 

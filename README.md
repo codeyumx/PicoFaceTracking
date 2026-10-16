@@ -23,10 +23,9 @@ access to them.
 Closing the settings panel leaves tracking running in the background. The **Stop tracking and close the app** button at
 the bottom switches tracking off and closes the app; tracking stays off until it is switched on again.
 
-VRCFaceTracking's Pico 4 Face Tracking module only claims eye and face tracking if the headset answers within 45 seconds
-of VRCFaceTracking starting (module setting `HeadsetWaitSeconds`). Switch tracking on in the app within that time; if
-VRCFaceTracking's log says "No PICO headset answered", restart VRCFaceTracking. The app says this on its settings screen
-too.
+VRCFaceTracking's Pico 4 Face Tracking module only claims eye and face tracking if the headset answers within 5 seconds
+of VRCFaceTracking starting. Switch tracking on in the app first; if VRCFaceTracking was already running (its log says
+"No PICO headset answered"), restart VRCFaceTracking. The app says this on its settings screen too.
 
 ## Panel next to the running VR app
 

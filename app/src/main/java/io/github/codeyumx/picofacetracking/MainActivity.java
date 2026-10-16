@@ -166,8 +166,8 @@ public final class MainActivity extends Activity {
                 + "Tracking only flows while the headset is worn.", 15));
         content.addView(heading("If the PC does not connect"));
         content.addView(text("Pico 4 Face Tracking only takes over eye and face tracking if this headset answers within "
-                + "45 seconds of VRCFaceTracking starting. If tracking was switched on here later than that (or the "
-                + "headset was off), VRCFaceTracking's log says \"No PICO headset answered\": switch tracking on, "
+                + "5 seconds of VRCFaceTracking starting. If VRCFaceTracking was started before tracking was switched on "
+                + "here (or before the headset was on), its log says \"No PICO headset answered\": switch tracking on, "
                 + "then restart VRCFaceTracking.", 15));
         content.addView(heading("After a restart"));
         content.addView(text("If tracking does not come back by itself, open this app once. It opens as a panel next to "
