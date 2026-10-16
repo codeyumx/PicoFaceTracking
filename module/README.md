@@ -11,9 +11,11 @@ thoricelli's Pico Facial Data Module and also works with thoricelli's `picofacia
 3. Select the ZIP you downloaded.
 4. On the headset, turn tracking on in the Pico Face Tracking app.
 
-The module claims eye and face tracking only when a headset answers within 5 seconds of VRCFaceTracking starting
-(also a headset waiting on its pairing screen). If tracking was off then, the log says "No PICO headset answered";
-turn it on and restart VRCFaceTracking. Set `ClaimWithoutHeadset` to claim them regardless, as older versions did.
+The module claims eye and face tracking only when a headset answers within 45 seconds of VRCFaceTracking starting
+(`HeadsetWaitSeconds`; also a headset waiting on its pairing screen). It claims them as soon as the headset answers, and
+modules for other headsets do not wait for it. If tracking was still off after the wait, the log says "No PICO headset
+answered"; turn it on and restart VRCFaceTracking. Set `ClaimWithoutHeadset` to claim them regardless, as older versions
+did.
 
 ### Switching to another headset
 
@@ -48,6 +50,7 @@ Settings can be found at: `%appdata%/VRCFaceTracking/CustomLibs/168d44d5-bbb7-4e
 | DisableFaceTracking                  | Disables face tracking in the module only.                                                                                                                                                                             | `false`       |
 |IP| Specifies the IP address of the PICO headset on your network (or outside of it).<br>Skips the multicast discovery process if set.| `null`
 | ClaimWithoutHeadset                  | Claims eye and face tracking even when no headset answers while VRCFaceTracking starts, so no other module gets them.                                                                                                 | `false`       |
+| HeadsetWaitSeconds                   | How long VRCFaceTracking's start waits for the headset before leaving eye and face tracking to other modules. At most `50`: VRCFaceTracking stops a module that takes over 60 seconds to start. `0` gives up at once. | `45`          |
 | eyePupilDilationEyeOpennessThreshold | This threshold will stop eye dilation tracking below a certain eye openness. | `0.8`         |
 
 ### Babble
