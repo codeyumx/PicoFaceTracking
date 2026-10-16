@@ -26,9 +26,9 @@ final class Prefs {
         return context.getSharedPreferences(FILE, Context.MODE_PRIVATE);
     }
 
-    /** Option 1: whether tracking is switched on. */
+    /** Option 1: whether tracking is switched on. On by default; the headset's own settings gate eye and face tracking. */
     boolean enabled() {
-        return preferences.getBoolean(ENABLED, false);
+        return preferences.getBoolean(ENABLED, true);
     }
 
     void setEnabled(boolean enabled) {

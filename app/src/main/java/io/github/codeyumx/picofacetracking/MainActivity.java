@@ -12,6 +12,7 @@ import android.graphics.drawable.StateListDrawable;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
+import android.provider.Settings;
 import android.text.InputFilter;
 import android.text.InputType;
 import android.text.method.DigitsKeyListener;
@@ -41,6 +42,7 @@ public final class MainActivity extends Activity {
     };
     private static final long REFRESH_MS = 500;
     private static final int ON_COLOR = 0xFF2E7D32;
+    private static final int WARNING_COLOR = 0xFFE65100;
     private static final int IMPORT_LICENCE = 1;
     /** Licence files are a few hundred bytes. */
     private static final int MAX_LICENCE_BYTES = 4096;
@@ -72,6 +74,7 @@ public final class MainActivity extends Activity {
     /** The PCs shown in pairingPcs; a radio button's id is its index + 1. */
     private List<InetSocketAddress> shownPcs = new ArrayList<>();
     private TextView licenceInfo;
+    private TextView headsetToggles;
     private boolean showingState;
 
     @Override
@@ -156,7 +159,8 @@ public final class MainActivity extends Activity {
         content.addView(startAtBoot);
 
         content.addView(heading("On the PC"));
-        content.addView(text("Install \"Pico 4 Face Tracking\" in VRCFaceTracking, which can pair by code, or thoricelli's "
+        content.addView(text("Install VRCFaceTracking on the PC, then install the \"Pico 4 Face Tracking\" module in "
+                + "VRCFaceTracking (it can pair by code), or thoricelli's "
                 + "Pico Facial Data Module, which pairs by address. Pico4SAFTExtTrackingModule can stay installed: "
                 + "it only starts while PICO Connect or Streaming Assistant runs on the PC. "
                 + "Tracking only flows while the headset is worn.", 15));
@@ -381,7 +385,19 @@ public final class MainActivity extends Activity {
                 : "Paired by address (no pairing key). Pairing by code adds encryption and keeps working when the PC's "
                 + "address changes; it needs \"Pico 4 Face Tracking\" in VRCFaceTracking.");
         showPairing(keyed);
+        showHeadsetToggles();
         showingState = false;
+    }
+
+    /** PICO's own Settings → LAB switches (Settings.System key_et_enable / key_ft_enable); off stops that part entirely. */
+    private void showHeadsetToggles() {
+        // A missing key counts as on, so headsets without these switches show no warning.
+        boolean eyeOn = Settings.System.getInt(getContentResolver(), "key_et_enable", 1) != 0;
+        boolean faceOn = Settings.System.getInt(getContentResolver(), "key_ft_enable", 1) != 0;
+        String off = !eyeOn && !faceOn ? "Eye Tracking and Face Tracking are" : !eyeOn ? "Eye Tracking is" : "Face Tracking is";
+        headsetToggles.setVisibility(eyeOn && faceOn ? View.GONE : View.VISIBLE);
+        headsetToggles.setText(off + " switched off in the headset's Settings → LAB. Switch it on there; "
+                + "this app cannot track what the headset has switched off.");
     }
 
     private void requestMissingPermissions() {
@@ -424,6 +440,10 @@ public final class MainActivity extends Activity {
         row.addView(eyes, left);
         row.addView(mouth, right);
         content.addView(row);
+        headsetToggles = text("", 15);
+        headsetToggles.setTextColor(WARNING_COLOR);
+        headsetToggles.setVisibility(View.GONE);
+        content.addView(headsetToggles);
         content.addView(text("Untick a part to send it as neutral (eyes open and looking ahead, or no mouth movement) "
                 + "while the other part keeps tracking.", 15));
     }
