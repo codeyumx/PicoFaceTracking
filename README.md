@@ -20,6 +20,13 @@ free except the [tracking adjustments](#tracking-adjustments-supporters), which 
 not available yet: if the app gets enough interest, more settings will follow, and a Patreon will give supporters
 access to them.
 
+Closing the settings panel leaves tracking running in the background. The **Stop tracking and close the app** button at
+the bottom switches tracking off and closes the app; tracking stays off until it is switched on again.
+
+VRCFaceTracking's Pico 4 Face Tracking module only claims eye and face tracking if the headset answers within 5 seconds
+of VRCFaceTracking starting. Switch tracking on in the app first; if VRCFaceTracking was already running (its log says
+"No PICO headset answered"), restart VRCFaceTracking. The app says this on its settings screen too.
+
 ## Panel next to the running VR app
 
 The settings screen declares PICO's activity meta-data `pico.vr.position` = `near` (the same as PICO's own User Guide), so
@@ -27,7 +34,7 @@ PICO opens it as a panel next to Virtual Desktop instead of switching apps, whic
 
 ## Settings
 
-1. **Face and eye tracking**: on / off. Off stops the tracking algorithm, which releases the camera.
+1. **Face and eye tracking**: on / off (on by default). Off stops the tracking algorithm, which releases the camera.
    The notification also has a **Turn off** button.
    **Eyes and brows** and **Mouth, jaw, cheeks and tongue** (both on by default, free): untick one to send that part
    as neutral while the other keeps tracking, for example eyes only. Eyes off sends open eyes looking straight ahead;
@@ -51,7 +58,8 @@ unlock with a supporter licence file, which is not available yet (see [Open core
   settings are shortcuts into these values. Eye blink settings also apply to eye openness, which drives blinking in
   Pico Facial Data Module.
 
-PICO's own switches (Settings > LAB, `key_et_enable` / `key_ft_enable`) cannot be changed by a sideloaded app.
+PICO's own switches (Settings > LAB, `key_et_enable` / `key_ft_enable` in `Settings.System`) cannot be changed by a
+sideloaded app. The app reads them and shows a warning under the eyes and mouth switches while either is off.
 
 ## Pairing by code (protocol version 2, optional)
 
