@@ -90,6 +90,11 @@ public final class MainActivity extends Activity {
         TextView title = text(getString(R.string.app_name), 24);
         title.setTypeface(Typeface.DEFAULT_BOLD);
         content.addView(title);
+        // Tracking runs in the background service; this only closes the settings panel.
+        Button close = new Button(this);
+        close.setText("Close (tracking keeps running in the background)");
+        close.setOnClickListener(view -> finishAndRemoveTask());
+        content.addView(close);
 
         content.addView(heading("1. Tracking"));
         tracking = checkCard("Face and eye tracking", 22, 40, 84);
@@ -164,6 +169,11 @@ public final class MainActivity extends Activity {
                 + "Pico Facial Data Module, which pairs by address. Pico4SAFTExtTrackingModule can stay installed: "
                 + "it only starts while PICO Connect or Streaming Assistant runs on the PC. "
                 + "Tracking only flows while the headset is worn.", 15));
+        content.addView(heading("If the PC does not connect"));
+        content.addView(text("Pico 4 Face Tracking only takes over eye and face tracking if this headset answers within "
+                + "5 seconds of VRCFaceTracking starting. If VRCFaceTracking was started before tracking was switched on "
+                + "here (or before the headset was on), its log says \"No PICO headset answered\": switch tracking on, "
+                + "then restart VRCFaceTracking.", 15));
         content.addView(heading("After a restart"));
         content.addView(text("If tracking does not come back by itself, open this app once. It opens as a panel next to "
                 + "Virtual Desktop without closing it.", 15));
