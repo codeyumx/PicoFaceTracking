@@ -118,7 +118,8 @@ jobs:
           TAG: ${{ github.ref_name }}
         run: |
           MODULE_VERSION=$(unzip -p Pico4FaceTracking-VRCFT.zip module.json | jq -r .Version)
-          NOTES="Headset: install with Install face tracking app.bat, or: adb install -r PicoFaceTracking.apk. The tracking adjustments need a supporter licence, which is not available yet. SHA-256: $(cut -d' ' -f1 PicoFaceTracking.apk.sha256)"
+          NOTES="Install on the headset without a PC: open this page in PICO Browser on the headset, download PicoFaceTracking.apk, then open it from the download list (or Files) and install it. To update, install the new APK over the old one; settings are kept."
+          NOTES="$NOTES"$'\n\n'"Install from a PC: Install face tracking app.bat, or: adb install -r PicoFaceTracking.apk. The tracking adjustments need a supporter licence, which is not available yet. SHA-256: $(cut -d' ' -f1 PicoFaceTracking.apk.sha256)"
           NOTES="$NOTES"$'\n\n'"PC: Pico 4 Face Tracking module $MODULE_VERSION. In VRCFaceTracking: Module Registry, +, Pico4FaceTracking-VRCFT.zip. SHA-256: $(cut -d' ' -f1 Pico4FaceTracking-VRCFT.zip.sha256)"
           gh release create "$TAG" PicoFaceTracking.apk PicoFaceTracking.apk.sha256 \
             Pico4FaceTracking-VRCFT.zip Pico4FaceTracking-VRCFT.zip.sha256 \
