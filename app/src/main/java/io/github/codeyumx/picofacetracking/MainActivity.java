@@ -173,18 +173,20 @@ public final class MainActivity extends Activity {
         content.addView(text("If tracking does not come back by itself, open this app once. It opens as a panel next to "
                 + "Virtual Desktop without closing it.", 15));
 
-        // Closing the panel normally leaves tracking running; this button is for the rare full stop.
+        // Closing the panel normally leaves tracking running; this button is for the rare full stop. The tracking
+        // switch stays on, so tracking comes back the next time the app opens or the headset starts.
         Button close = new Button(this);
         close.setText("Stop tracking and close the app");
         close.setOnClickListener(view -> {
-            turnOff();
+            TrackingService.stop(this);
             finishAndRemoveTask();
         });
         LinearLayout.LayoutParams closeLayout = new LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
         closeLayout.setMargins(0, dp(20), 0, 0);
         content.addView(close, closeLayout);
-        content.addView(text("Tracking stays off until you switch it on again in this app.", 15));
+        content.addView(text("Tracking starts again the next time you open this app or restart the headset. To keep it "
+                + "off, switch off \"Face and eye tracking\" at the top instead.", 15));
 
         ScrollView scroll = new ScrollView(this);
         scroll.addView(content);
