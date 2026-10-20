@@ -49,7 +49,10 @@ final class Tracker implements Runnable {
     private static final long START_RETRY_MS = 1000;
     private static final long POLL_MS = 10;
     private static final long PING_WHILE_STREAMING_MS = 25_000;
-    /** Frequent pings keep the module connected while no data flows, it gives up after 2 seconds of silence. */
+    /**
+     * The longest the PC goes without a packet (frame or ping): the module drops the connection after 2 seconds of
+     * silence, so a ping follows 1 second after the last frame and every second while no frames flow.
+     */
     private static final long PING_WHILE_IDLE_MS = 1000;
     private static final long CLIENT_TIMEOUT_MS = 25_000;
     private static final long STREAMING_GRACE_MS = 2000;
@@ -239,6 +242,8 @@ final class Tracker implements Runnable {
         boolean started = false;
         long lastStartAttempt = Long.MIN_VALUE / 2;
         long lastSent = Long.MIN_VALUE / 2;
+        // The last frame or ping that went out.
+        long lastPacket = Long.MIN_VALUE / 2;
         long nextPing = 0;
         long unansweredSince = -1;
         String lastStartError = null;
@@ -340,15 +345,17 @@ final class Tracker implements Runnable {
                             return;
                         }
                         // A full send buffer drops the frame (write returns 0); the next frame follows 40 ms later.
-                        if (written > 0)
+                        if (written > 0) {
                             lastSent = now;
+                            lastPacket = now;
+                        }
                     }
                     listener.onStatus(now - lastSent < STREAMING_GRACE_MS
                             ? new Text(R.string.status_sending, pc)
                             : new Text(R.string.status_no_data, pc));
                 }
 
-                if (now >= nextPing) {
+                if (now >= nextPing || now - lastPacket >= PING_WHILE_IDLE_MS) {
                     ping.clear();
                     int written;
                     try {
@@ -361,6 +368,7 @@ final class Tracker implements Runnable {
                     }
                     // When the send buffer is full the ping is retried on the next poll.
                     if (written > 0) {
+                        lastPacket = now;
                         if (unansweredSince < 0)
                             unansweredSince = now;
                         nextPing = now + (now - lastSent < STREAMING_GRACE_MS ? PING_WHILE_STREAMING_MS : PING_WHILE_IDLE_MS);
