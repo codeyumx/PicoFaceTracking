@@ -30,6 +30,46 @@ namespace PicoFacialDataModule.Tests
             using var reused = new UdpClient(port);
         }
 
+        /// <summary>
+        /// A headset that stays connected but sends no frames (taken off, tracking paused) only pings. Each ping must be
+        /// answered and end the receive, so the module keeps the connection and can show a neutral face, instead of
+        /// dropping it after 2 seconds and searching while the headset still streams to the old connection.
+        /// </summary>
+        [Fact]
+        public async Task OriginalConnectorAnswersPingsWithoutFramesAndStaysConnected()
+        {
+            var port = FreePort();
+            using var connector = new PicoFacialModuleConnector(port, "127.0.0.2");
+            // The headset: bound to its own loopback address, so it receives the DISCOVER the connector sends there.
+            using var headset = new UdpClient(new IPEndPoint(IPAddress.Parse("127.0.0.2"), port));
+
+            var establish = connector.EstablishAsync(CancellationToken.None);
+            var discover = await headset.ReceiveAsync().WaitAsync(TimeSpan.FromSeconds(5));
+            var ping = new byte[] { (byte)'M', (byte)'A', (byte)'R', (byte)'C', (byte)'O', 0 };
+            await headset.SendAsync(ping, ping.Length, discover.RemoteEndPoint);
+            await establish.WaitAsync(TimeSpan.FromSeconds(5));
+
+            // Longer than the 2 second timeout in all, one ping a second.
+            for (var i = 0; i < 4; i++)
+            {
+                if (i > 0)
+                {
+                    await Task.Delay(1000);
+                    await headset.SendAsync(ping, ping.Length, discover.RemoteEndPoint);
+                }
+                var result = new TrackingResult();
+                await connector.ReceiveAsync(result).WaitAsync(TimeSpan.FromSeconds(5));
+                Assert.False(result.FaceData.HasValue);
+
+                // The connector sent one DISCOVER per network card; skip the rest of them.
+                string reply;
+                do
+                    reply = System.Text.Encoding.UTF8.GetString((await headset.ReceiveAsync().WaitAsync(TimeSpan.FromSeconds(5))).Buffer);
+                while (reply == "DISCOVER_DAEMON");
+                Assert.Equal("POLO", reply);
+            }
+        }
+
         private static int FreePort()
         {
             using var probe = new UdpClient(0);

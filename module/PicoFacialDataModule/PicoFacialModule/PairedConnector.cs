@@ -104,9 +104,7 @@ namespace PicoFacialDataModule.PicoFacialModule
             }
         }
 
-        /// <summary>
-        /// Waits for the next frame from the headset, answering its pings meanwhile.
-        /// </summary>
+        /// <inheritdoc />
         public async Task ReceiveAsync(TrackingResult trackingResult)
         {
             while (true)
@@ -130,7 +128,7 @@ namespace PicoFacialDataModule.PicoFacialModule
                 {
                     var pong = _session.Seal(Pairing.Pong);
                     await _udpClient.SendAsync(pong, pong.Length, _headset);
-                    continue;
+                    return;
                 }
                 if (type != Pairing.Data)
                     continue;

@@ -46,22 +46,18 @@ namespace PicoFacialDataModule.PicoFacialModule
                 _udpClient.Dispose();
         }
 
-        /// <summary>
-        /// Waits for the tracking module to send data.
-        /// </summary>
+        /// <inheritdoc />
         public async Task ReceiveAsync(TrackingResult trackingResult)
         {
             byte[] buffer;
 
-            do
+            if (_establishBuffer != null)
             {
-                if (_establishBuffer != null)
-                {
-                    buffer = _establishBuffer;
-                    _establishBuffer = null;
-                    continue;
-                }
-
+                buffer = _establishBuffer;
+                _establishBuffer = null;
+            }
+            else
+            {
                 try
                 {
                     using var cancellationToken = new CancellationTokenSource(TimeSpan.FromSeconds(2));
@@ -71,8 +67,10 @@ namespace PicoFacialDataModule.PicoFacialModule
                 {
                     throw new ClientDiedException();
                 }
+            }
 
-            } while (!HasTrackingData(buffer));
+            if (!HasTrackingData(buffer))
+                return;
 
             if (!_facialDataPayload.IsPayloadValid(buffer))
                 throw new ClientIncorrectDataException();

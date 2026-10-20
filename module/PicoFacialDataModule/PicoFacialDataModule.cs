@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using System.Net;
+using Microsoft.Extensions.Logging;
 using PicoFacialDataModule.PicoFacialModule;
 using PicoFacialDataModule.PicoFacialModule.Exceptions;
 using VRCFaceTracking;
@@ -15,6 +16,8 @@ namespace PicoFacialDataModule
         /// <summary>One discovery round of Update; Update returns after it so VRCFaceTracking can stop the module.</summary>
         private static readonly TimeSpan DiscoveryRound = TimeSpan.FromSeconds(2);
         private static readonly TimeSpan IdlePoll = TimeSpan.FromMilliseconds(500);
+        /// <summary>A connected headset that sends only pings this long has stopped tracking; the face goes neutral.</summary>
+        private static readonly TimeSpan NoFramesTimeout = TimeSpan.FromSeconds(2);
 
         private readonly object _connectorLock = new();
         /// <summary>
@@ -28,6 +31,10 @@ namespace PicoFacialDataModule
         private bool _eyeClaimed;
         private bool _expressionClaimed;
         private bool _searching;
+        /// <summary>When the last frame arrived, or the connection was established (<see cref="Environment.TickCount64"/>).</summary>
+        private long _lastFrameAt;
+        /// <summary>Set once the face went neutral because only pings arrived; cleared by the next frame.</summary>
+        private bool _neutralWithoutFrames;
         private volatile bool _tornDown;
         /// <summary>Set by <see cref="Goodnight"/>: the module stops working until VRCFaceTracking reloads it.</summary>
         private volatile bool _failed;
@@ -140,7 +147,22 @@ namespace PicoFacialDataModule
                 connector.ReceiveAsync(trackingResult).GetAwaiter().GetResult();
 
                 if (trackingResult.FaceData.HasValue)
+                {
                     _faceTrackingParser.Parse(trackingResult.FaceData.Value);
+                    _lastFrameAt = Environment.TickCount64;
+                    if (_neutralWithoutFrames)
+                    {
+                        _neutralWithoutFrames = false;
+                        Logger.LogInformation("The headset sends tracking data again.");
+                    }
+                }
+                else if (!_neutralWithoutFrames && Environment.TickCount64 - _lastFrameAt >= (long)NoFramesTimeout.TotalMilliseconds)
+                {
+                    // Still connected (it answers pings) but not tracking: headset taken off, or tracking paused on it.
+                    _neutralWithoutFrames = true;
+                    Logger.LogInformation("The headset is connected but sends no tracking data, the face and eyes are neutral until it does.");
+                    ResetToNeutral();
+                }
 
                 if (trackingResult.EyeData.HasValue && trackingResult.FaceData.HasValue)
                     _eyeTrackingParser.Parse(trackingResult.EyeData.Value, trackingResult.FaceData.Value);
@@ -184,8 +206,7 @@ namespace PicoFacialDataModule
 
             if (establish.IsCompletedSuccessfully)
             {
-                _establishedConnector = connector;
-                Logger.LogInformation($"Connection established to: {establish.Result.Address}");
+                Established(connector, establish.Result);
                 return true;
             }
 
@@ -221,9 +242,8 @@ namespace PicoFacialDataModule
                 using var round = new CancellationTokenSource(DiscoveryRound);
                 var IP = connector.EstablishAsync(round.Token).GetAwaiter().GetResult();
 
-                _establishedConnector = connector;
                 _searching = false;
-                Logger.LogInformation($"Connection established to: {IP.Address}");
+                Established(connector, IP);
             } catch (OperationCanceledException)
             {
                 // No headset this round; the next Update asks again.
@@ -234,6 +254,15 @@ namespace PicoFacialDataModule
                     return;
                 Goodnight(e);
             }
+        }
+
+        /// <summary>Update receives from <paramref name="connector"/> now; frames are expected from this moment.</summary>
+        private void Established(IPicoFacialModuleConnector connector, IPEndPoint headset)
+        {
+            _establishedConnector = connector;
+            _lastFrameAt = Environment.TickCount64;
+            _neutralWithoutFrames = false;
+            Logger.LogInformation($"Connection established to: {headset.Address}");
         }
 
         /// <summary>Sends STOP to the headset and closes the connection; Update opens a new one once switched on again.</summary>
