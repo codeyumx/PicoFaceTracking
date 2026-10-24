@@ -22,6 +22,22 @@ final class Pairing {
     static final int PING = 5;
     static final int PONG = 6;
     static final int STOP = 7;
+    /** Headset to PC, in the session: the headset's model name (length byte, then UTF-8). */
+    static final int INFO = 14;
+    private static final int MAX_INFO_NAME = 64;
+
+    /** The plaintext of an INFO message for this model name, cut to 64 bytes at a character boundary. */
+    static byte[] info(String model) {
+        byte[] utf8 = model.getBytes(StandardCharsets.UTF_8);
+        int length = Math.min(utf8.length, MAX_INFO_NAME);
+        // Do not end inside a multi-byte character (continuation bytes are 10xxxxxx).
+        while (length < utf8.length && length > 0 && (utf8[length] & 0xC0) == 0x80)
+            length--;
+        byte[] plaintext = new byte[1 + length];
+        plaintext[0] = (byte) length;
+        System.arraycopy(utf8, 0, plaintext, 1, length);
+        return plaintext;
+    }
 
     private static final byte[] MAGIC = {'P', 'F', 'T', '2'};
     static final int HEADER = 5;

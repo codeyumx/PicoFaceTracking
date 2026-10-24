@@ -1,6 +1,8 @@
 package io.github.codeyumx.picofacetracking;
 
+import android.annotation.SuppressLint;
 import android.net.wifi.WifiManager;
+import android.os.Build;
 import android.os.Binder;
 import android.os.Parcel;
 import android.os.SystemClock;
@@ -59,6 +61,8 @@ final class Tracker implements Runnable {
     private static final long HANDSHAKE_TIMEOUT_MS = 2000;
     private static final int DISCOVERY_RECEIVE_TIMEOUT_MS = 1000;
     private static final long MULTICAST_REJOIN_MS = 10_000;
+    /** INFO plaintext with this headset's model, sent to a version 2 PC with every ping. */
+    private static final byte[] INFO = Pairing.info(headsetModel());
 
     /** Null until paired: then the first PC on the local network that asks is accepted and remembered. */
     private Inet4Address allowedClient;
@@ -362,6 +366,9 @@ final class Tracker implements Runnable {
                         written = session != null
                                 ? channel.write(ByteBuffer.wrap(sealed, 0, session.seal(Pairing.PING, null, 0, sealed)))
                                 : channel.write(ping);
+                        // The first ping goes out at once, so the PC learns the model right after the handshake.
+                        if (session != null && written > 0)
+                            channel.write(ByteBuffer.wrap(sealed, 0, session.seal(Pairing.INFO, INFO, INFO.length, sealed)));
                     } catch (PortUnreachableException e) {
                         Log.i(TAG, pc + " is no longer listening.");
                         return;
@@ -424,6 +431,23 @@ final class Tracker implements Runnable {
         } catch (EyeTrackingService.ServiceException e) {
             Log.w(TAG, "Cannot stop tracking: " + e.getMessage());
         }
+    }
+
+    /**
+     * "PICO 4 Pro" or "PICO 4 Enterprise": PICO's product name property. Build.MODEL (A8110) is the same for every
+     * PICO 4 variant, so it is only the fallback.
+     */
+    @SuppressLint("PrivateApi")
+    private static String headsetModel() {
+        try {
+            String name = (String) Class.forName("android.os.SystemProperties")
+                    .getMethod("get", String.class).invoke(null, "sys.pxr.product.name");
+            if (name != null && !name.isEmpty())
+                return name;
+        } catch (ReflectiveOperationException | RuntimeException e) {
+            Log.w(TAG, "Cannot read the product name: " + e);
+        }
+        return Build.MODEL;
     }
 
     private static SharedBuffer closeQuietly(SharedBuffer buffer) {
