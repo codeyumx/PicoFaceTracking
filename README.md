@@ -91,7 +91,9 @@ frames (AES-256-GCM). No cable and no PC software besides VRCFaceTracking:
 
 1. In the app, press **Pair by code**.
 2. VRCFaceTracking, with the Pico 4 Face Tracking module, shows
-   `Pairing code for <headset> (<address>): 123 456` on its Output page.
+   `Pairing code for <headset> (<address>): 123 456` on its Output page. In
+   [OSCFT for VRC](https://github.com/codeyumx/oscft_for_vrc) the code is also under **Pairing** in the module's
+   settings.
 3. Type the code in the app and press **Pair**. Both sides now hold a new random key; the module switches to it at
    once and saves it in `%APPDATA%\PicoFacialData\pairing-key.txt`.
 
@@ -185,4 +187,5 @@ GitHub Actions builds the free app (and runs its unit tests) and the PC module (
 repository with the `PRO_DEPLOY_KEY` deploy key) and publishes the APK and `Pico4FaceTracking-VRCFT.zip` as a
 GitHub release; a tag with a suffix such as `v1.9.3-rc1` publishes a pre-release instead. Signing uses two repository secrets: `SIGNING_KEYSTORE_BASE64` (a PKCS#12 keystore with key alias `picofacetracking`) and `SIGNING_PASSWORD`.
 
-Clone with `git clone --recursive` (the module builds against the `module/VRCFaceTracking` submodule).
+Clone with `git clone --recursive` (the module builds against the `module/VRCFaceTracking` and `module/oscft_for_vrc`
+submodules).
