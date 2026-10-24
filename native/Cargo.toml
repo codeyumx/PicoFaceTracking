@@ -1,0 +1,37 @@
+[package]
+name = "pico4-face-tracking-native"
+description = "Pico 4 Face Tracking as a native OSCFT for VRC module (no .NET)"
+version = "1.12.0"
+edition = "2024"
+rust-version = "1.85"
+license = "MIT"
+publish = false
+
+[[bin]]
+name = "Pico4FaceTracking"
+path = "src/main.rs"
+
+[workspace]
+
+[profile.release]
+lto = "thin"
+codegen-units = 1
+strip = "symbols"
+
+[dependencies]
+aes-gcm = "0.10"
+base64 = "0.22"
+dirs = "7.0.0"
+fb-module-sdk = { git = "https://github.com/codeyumx/oscft_for_vrc", tag = "v0.2.0" }
+gethostname = "1.1.0"
+hmac = "0.12"
+if-addrs = "0.15.0"
+num-bigint = "0.4"
+rand = "0.9"
+serde_json = "1"
+sha2 = "0.10"
+socket2 = "0.6.5"
+subtle = "2.6.1"
+
+[dev-dependencies]
+hex = "0.4.3"
