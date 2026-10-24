@@ -35,7 +35,9 @@ namespace PicoFacialDataModule.Tests
         /// answered and end the receive, so the module keeps the connection and can show a neutral face, instead of
         /// dropping it after 2 seconds and searching while the headset still streams to the old connection.
         /// </summary>
-        [Fact]
+        // The connector binds 0.0.0.0:port and the fake headset 127.0.0.2:port. Windows allows that; Linux (and macOS)
+        // refuse the second bind with "Address already in use", so the test only runs on Windows (as in CI).
+        [WindowsFact]
         public async Task OriginalConnectorAnswersPingsWithoutFramesAndStaysConnected()
         {
             var port = FreePort();
@@ -74,6 +76,16 @@ namespace PicoFacialDataModule.Tests
         {
             using var probe = new UdpClient(0);
             return ((IPEndPoint)probe.Client.LocalEndPoint!).Port;
+        }
+    }
+
+    /// <summary>A <see cref="FactAttribute"/> that is skipped outside Windows.</summary>
+    public sealed class WindowsFactAttribute : FactAttribute
+    {
+        public WindowsFactAttribute()
+        {
+            if (!OperatingSystem.IsWindows())
+                Skip = "Binds one port on 0.0.0.0 and 127.0.0.2, which only Windows allows.";
         }
     }
 }
