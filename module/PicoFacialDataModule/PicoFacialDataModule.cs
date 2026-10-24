@@ -1,7 +1,8 @@
-﻿using System.Net;
+using System.Net;
 using Microsoft.Extensions.Logging;
 using PicoFacialDataModule.PicoFacialModule;
 using PicoFacialDataModule.PicoFacialModule.Exceptions;
+using System.Net.Sockets;
 using VRCFaceTracking;
 using VRCFaceTracking.Core.Library;
 using VRCFaceTracking.Core.Params.Expressions;
@@ -42,7 +43,12 @@ namespace PicoFacialDataModule
 #pragma warning disable CS8618 // Because we didn't initialize in the constructor it is WHINING!
         private FaceTrackingParser _faceTrackingParser;
         private EyeTrackingParser _eyeTrackingParser;
+        /// <summary>PicoFacialDataModule.json; VRCFaceTracking and OSCFT for VRC.</summary>
         private ModuleSettings _moduleSettings;
+        /// <summary>OSCFT for VRC's settings panel and notifications; in VRCFaceTracking only log lines.</summary>
+        private OscftFeatures _oscft;
+        /// <summary>Data arrives and the "receiving" notification was shown; reset when the headset stops sending.</summary>
+        private bool _receiving;
 #pragma warning restore CS8618
 
 #if EYEDEBUG || FACEDEBUG
@@ -73,8 +79,24 @@ namespace PicoFacialDataModule
                 if (!eye && !expression)
                     return (false, false);
 
-                _picoFacialModuleConnector = CreateConnector(Pairing.Load());
-                _pairingListener = new PairingListener(PORT, _moduleSettings.IP, Logger, OnPaired);
+                var pairing = Pairing.Load();
+                FaceBridgeSdkLoader.Register();
+                _oscft = new OscftFeatures(Logger, pairing != null);
+
+                try
+                {
+                    _picoFacialModuleConnector = CreateConnector(pairing);
+                }
+                catch (SocketException e) when (pairing == null && e.SocketErrorCode is SocketError.AddressAlreadyInUse or SocketError.AccessDenied)
+                {
+                    // Only the original protocol listens on the fixed port; a paired module uses any free one.
+                    Logger.LogWarning($"Opening UDP port {PORT} failed: {e.Message}");
+                    _oscft.ShowPortInUse(PORT);
+                    return (false, false);
+                }
+                _oscft.ClearPortInUse();
+
+                _pairingListener = new PairingListener(PORT, _moduleSettings.IP, Logger, OnPaired, _oscft.ShowPairingStatus);
 
                 // VRCFaceTracking hands eye and face tracking to the first module that claims them and never moves them
                 // to another module later, so claim them only for a headset that is there.
@@ -150,6 +172,12 @@ namespace PicoFacialDataModule
                 {
                     _faceTrackingParser.Parse(trackingResult.FaceData.Value);
                     _lastFrameAt = Environment.TickCount64;
+                    // Once until the headset stops sending; a quick reconnect does not repeat it.
+                    if (!_receiving)
+                    {
+                        _receiving = true;
+                        _oscft.ShowReceiving();
+                    }
                     if (_neutralWithoutFrames)
                     {
                         _neutralWithoutFrames = false;
@@ -177,6 +205,8 @@ namespace PicoFacialDataModule
             {
                 // Also when the connector was closed under us: replaced by pairing, switched off or torn down.
                 _establishedConnector = null;
+                // The next frame is announced again.
+                _receiving = false;
                 if (connector == _picoFacialModuleConnector)
                     Logger.LogInformation("The headset stopped sending, the face and eyes are neutral until it is back.");
                 ResetToNeutral();
@@ -302,7 +332,13 @@ namespace PicoFacialDataModule
                 return new PicoFacialModuleConnector(PORT, _moduleSettings.IP);
 
             Logger.LogInformation($"Paired by key ({Pairing.KeyPath}), using protocol version 2.");
-            return new PairedConnector(PORT, _moduleSettings.IP, pairing);
+            return new PairedConnector(PORT, _moduleSettings.IP, pairing, OnHeadsetModel);
+        }
+
+        private void OnHeadsetModel(string model)
+        {
+            Logger.LogInformation($"Headset: {model}");
+            _oscft.ShowHeadsetModel(model);
         }
 
         /// <summary>

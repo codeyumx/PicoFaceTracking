@@ -3,6 +3,10 @@ using System.Text.Json;
 
 namespace PicoFacialDataModule
 {
+    /// <summary>
+    /// The module's own settings: PicoFacialDataModule.json next to the DLL, edited by hand. Read in VRCFaceTracking
+    /// and in OSCFT for VRC alike. Not OSCFT's Module settings panel; that one is FaceBridge.Sdk, see OscftFeatures.
+    /// </summary>
     public class ModuleSettings {
         public bool DisableEyeTracking { get; set; }
         public bool DisableFaceTracking { get; set; }

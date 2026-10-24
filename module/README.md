@@ -24,6 +24,18 @@ VRCFaceTracking's home page stops the PICO's tracking, but the other module only
 VRCFaceTracking. If the PICO stops sending while this module has the tracking, the face and eyes go neutral instead of
 freezing on the last frame.
 
+### OSCFT for VRC
+
+The same ZIP also runs in [OSCFT for VRC](https://github.com/codeyumx/oscft_for_vrc) (install it on the Modules page).
+There the module also:
+
+- shows **Headset** (for example PICO 4 Pro; paired headsets only) and **Pairing** (with the code while pairing) in its
+  settings panel;
+- shows notifications: "Receiving data from Pico 4 headset", and an error when UDP port 9030 is used by another
+  program.
+
+In VRCFaceTracking the same information goes to the Output log.
+
 ### Pairing by code (protocol version 2)
 
 By default the module finds the headset with an unauthenticated discovery request, and anyone on the network can ask the
@@ -31,7 +43,8 @@ headset for tracking data. Once paired, the module and the headset prove to each
 each other again when the PC's address changes, and encrypt the tracking data.
 
 1. Start pairing on the headset side (in the Pico Face Tracking app: **Pair by code**).
-2. VRCFaceTracking's Output page shows "Pairing code for <headset> (<address>): 123 456".
+2. VRCFaceTracking's Output page shows "Pairing code for <headset> (<address>): 123 456" (OSCFT for VRC: the Output
+   page and **Pairing** in the module's settings).
 3. Type the code on the headset. The log shows "Paired with <headset>", and the module switches to the new key at once.
 
 The key is saved in `%APPDATA%/PicoFacialData/pairing-key.txt`; pairing again replaces it. Without the file the module
@@ -39,7 +52,13 @@ uses the original protocol. The protocol is described in [docs/protocol-v2.md](d
 
 ### Settings
 
-Settings can be found at: `%appdata%/VRCFaceTracking/CustomLibs/168d44d5-bbb7-4e86-8ae5-732047311d43/`.
+**VRCFaceTracking and OSCFT for VRC:** `PicoFacialDataModule.json` next to the module DLL (table below). Edit it while
+the app is closed.
+
+- VRCFaceTracking: `%APPDATA%\VRCFaceTracking\CustomLibs\168d44d5-bbb7-4e86-8ae5-732047311d43\`
+- OSCFT for VRC: `%APPDATA%\FaceBridge\modules\168d44d5-bbb7-4e86-8ae5-732047311d43\`
+
+**OSCFT for VRC only:** the module's **Module settings** panel shows **Headset** and **Pairing** (read-only status).
 
 
 | Setting                              | Description                                                                                                                                                                                                            | Default value |

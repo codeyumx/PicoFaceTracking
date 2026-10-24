@@ -4,7 +4,7 @@
   "AuthorName": "codeyumx",
   "ModuleName": "Pico 4 Face Tracking",
   "ModuleDescription": "Eye and face tracking from the PICO 4 Pro and PICO 4 Enterprise with the Pico Face Tracking app. Pairing by code finds the headset when the PC address changes and encrypts the tracking data. Based on thoricelli's Pico Facial Data Module.",
-  "UsageInstructions": "In the Pico Face Tracking app on the headset, press \"Pair by code\" and type the 6-digit code shown on VRCFaceTracking's Output page.",
+  "UsageInstructions": "In the Pico Face Tracking app on the headset, press \"Pair by code\" and type the 6-digit code shown on VRCFaceTracking's Output page (in OSCFT for VRC also under Pairing in the module's settings).",
   "DownloadUrl": "https://github.com/codeyumx/PicoFaceTracking/releases/latest/download/Pico4FaceTracking-VRCFT.zip",
   "ModulePageUrl": "https://github.com/codeyumx/PicoFaceTracking/tree/main/module",
   "DllFileName": "PicoFacialDataModule.dll"

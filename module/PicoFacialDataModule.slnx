@@ -8,4 +8,5 @@
   <Project Path="PicoFacialDataModule/PicoFacialDataModule.csproj" />
   <Project Path="VRCFaceTracking/VRCFaceTracking.Core/VRCFaceTracking.Core.csproj" />
   <Project Path="VRCFaceTracking/VRCFaceTracking.SDK/VRCFaceTracking.SDK.csproj" />
+  <Project Path="oscft_for_vrc/dotnet/FaceBridge.Sdk/FaceBridge.Sdk.csproj" />
 </Solution>

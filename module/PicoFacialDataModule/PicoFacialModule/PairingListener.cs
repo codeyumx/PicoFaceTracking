@@ -6,7 +6,8 @@ namespace PicoFacialDataModule.PicoFacialModule
 {
     /// <summary>
     /// Lets a headset pair by code (docs/protocol-v2.md, "Pairing"): asks the network every 2 seconds whether a headset
-    /// wants to pair, shows the code for it in the log and saves the new key when the user typed the code on the headset.
+    /// wants to pair, shows the code for it in the log and through onStatus, and saves the new key when the user typed
+    /// the code on the headset.
     /// Runs for as long as the module, next to the tracking connector.
     /// </summary>
     public sealed class PairingListener : IDisposable
@@ -23,6 +24,7 @@ namespace PicoFacialDataModule.PicoFacialModule
         private readonly IPEndPoint _endpoint;
         private readonly ILogger _logger;
         private readonly Action<byte[]> _onPaired;
+        private readonly Action<string> _onStatus;
         private readonly CancellationTokenSource _stop = new();
         private readonly Task _task;
         private readonly TaskCompletionSource _offered = new(TaskCreationOptions.RunContinuationsAsynchronously);
@@ -37,7 +39,8 @@ namespace PicoFacialDataModule.PicoFacialModule
         private int _failures;
         private DateTime _pausedUntil;
 
-        public PairingListener(int port, string? ip, ILogger logger, Action<byte[]> onPaired)
+        /// <param name="onStatus">Receives each pairing status the log shows, in a short form for a status display.</param>
+        public PairingListener(int port, string? ip, ILogger logger, Action<byte[]> onPaired, Action<string> onStatus)
         {
             _udpClient = new UdpClient(0)
             {
@@ -50,6 +53,7 @@ namespace PicoFacialDataModule.PicoFacialModule
             _endpoint = new IPEndPoint(string.IsNullOrEmpty(ip) ? IPAddress.Parse(MULTICAST_ADDRESS) : IPAddress.Parse(ip), port);
             _logger = logger;
             _onPaired = onPaired;
+            _onStatus = onStatus;
             _task = Task.Run(RunAsync);
         }
 
@@ -133,6 +137,7 @@ namespace PicoFacialDataModule.PicoFacialModule
                     _pairedResponse = null;
                     _pairedReply = null;
                     _logger.LogInformation($"Pairing code for {headsetName} ({from.Address}): {_attempt.Code[..3]} {_attempt.Code[3..]}. Type it in Pico Face Tracking on the headset.");
+                    _onStatus($"Code for {headsetName} ({from.Address}): {_attempt.Code[..3]} {_attempt.Code[3..]}\nType it in Pico Face Tracking on the headset.");
                     await _udpClient.SendAsync(_attempt.StartMessage, _attempt.StartMessage.Length, from);
                     return;
 
@@ -157,15 +162,18 @@ namespace PicoFacialDataModule.PicoFacialModule
                         _attempt = null;
                         _failures++;
                         _pausedUntil = DateTime.UtcNow + PauseAfterWrongCode;
-                        _logger.LogWarning(_failures < MaxFailures
+                        var wrongCode = _failures < MaxFailures
                             ? $"A wrong pairing code was typed on {_attemptHeadsetName} ({from.Address}). A new code follows in a few seconds."
-                            : $"A wrong pairing code was typed {MaxFailures} times. Pairing is off until VRCFaceTracking restarts.");
+                            : $"A wrong pairing code was typed {MaxFailures} times. Pairing is off until the module restarts.";
+                        _logger.LogWarning(wrongCode);
+                        _onStatus(wrongCode);
                         return;
                     }
 
                     _pairedResponse = message;
                     _pairedReply = reply;
                     _logger.LogInformation($"Paired with {_attemptHeadsetName} ({from.Address}). The pairing key is saved in {Pairing.KeyPath}.");
+                    _onStatus($"Paired with {_attemptHeadsetName} ({from.Address}).");
                     _onPaired(key);
                     return;
             }

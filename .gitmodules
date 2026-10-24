@@ -1,3 +1,6 @@
 [submodule "module/VRCFaceTracking"]
 	path = module/VRCFaceTracking
 	url = https://github.com/benaclejames/VRCFaceTracking.git
+[submodule "module/oscft_for_vrc"]
+	path = module/oscft_for_vrc
+	url = https://github.com/codeyumx/oscft_for_vrc.git

@@ -16,6 +16,9 @@ namespace PicoFacialDataModule.PicoFacialModule
         public const byte Ping = 5;
         public const byte Pong = 6;
         public const byte Stop = 7;
+        /// <summary>Session message from the headset: its model name (length byte, then UTF-8).</summary>
+        public const byte Info = 14;
+        private const int MaxInfoName = 64;
 
         public const int HeaderLength = 5;
         public const int NonceLength = 16;
@@ -42,6 +45,21 @@ namespace PicoFacialDataModule.PicoFacialModule
         {
             _authKey = HMACSHA256.HashData(key, "PFT2 auth"u8);
             _encryptionKey = HMACSHA256.HashData(key, "PFT2 enc"u8);
+        }
+
+        /// <summary>The model name in the plaintext of an INFO message, or null when it does not fit the format.</summary>
+        public static string? ParseInfo(ReadOnlySpan<byte> plaintext)
+        {
+            if (plaintext.Length < 1 || plaintext[0] > MaxInfoName || plaintext.Length != 1 + plaintext[0])
+                return null;
+            try
+            {
+                return new System.Text.UTF8Encoding(false, throwOnInvalidBytes: true).GetString(plaintext[1..]);
+            }
+            catch (System.Text.DecoderFallbackException)
+            {
+                return null;
+            }
         }
 
         /// <summary>The pairing at <see cref="KeyPath"/>, or null when there is no key file.</summary>

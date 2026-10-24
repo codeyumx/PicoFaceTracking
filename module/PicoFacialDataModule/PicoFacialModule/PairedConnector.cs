@@ -26,8 +26,11 @@ namespace PicoFacialDataModule.PicoFacialModule
 
         private IPEndPoint? _headset;
         private Pairing.Session? _session;
+        private readonly Action<string>? _onHeadsetModel;
+        private string? _headsetModel;
 
-        public PairedConnector(int port, string? IP, Pairing pairing)
+        /// <param name="onHeadsetModel">Called with the headset's model name when it first arrives or changes.</param>
+        public PairedConnector(int port, string? IP, Pairing pairing, Action<string>? onHeadsetModel = null)
         {
             // Any local port: the headset answers the address and port the DISCOVER came from, so this module does not
             // compete for port 9030 with another Pico module.
@@ -44,6 +47,7 @@ namespace PicoFacialDataModule.PicoFacialModule
             _port = port;
             _ip = IP;
             _pairing = pairing;
+            _onHeadsetModel = onHeadsetModel;
         }
 
         /// <summary>
@@ -129,6 +133,16 @@ namespace PicoFacialDataModule.PicoFacialModule
                     var pong = _session.Seal(Pairing.Pong);
                     await _udpClient.SendAsync(pong, pong.Length, _headset);
                     return;
+                }
+                if (type == Pairing.Info)
+                {
+                    var model = Pairing.ParseInfo(_frame.AsSpan(0, length));
+                    if (model != null && model != _headsetModel)
+                    {
+                        _headsetModel = model;
+                        _onHeadsetModel?.Invoke(model);
+                    }
+                    continue;
                 }
                 if (type != Pairing.Data)
                     continue;

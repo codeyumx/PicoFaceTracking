@@ -21,11 +21,14 @@
   <ItemGroup>
     <ProjectReference Include="..\VRCFaceTracking\VRCFaceTracking.Core\VRCFaceTracking.Core.csproj" />
     <ProjectReference Include="..\VRCFaceTracking\VRCFaceTracking.SDK\VRCFaceTracking.SDK.csproj" />
+    <!-- Notifications and the settings panel in OSCFT for VRC; ships next to the module DLL. -->
+    <ProjectReference Include="..\oscft_for_vrc\dotnet\FaceBridge.Sdk\FaceBridge.Sdk.csproj" />
   </ItemGroup>
 
   <Target Name="PostBuild" AfterTargets="PostBuildEvent" Condition="'$(Configuration)' == 'Debug' or '$(Configuration)' == 'EyeDebug' or '$(Configuration)' == 'FaceDebug'">
       <Exec Command="copy /y &quot;$(TargetDir)PicoFacialDataModule.dll&quot; &quot;%25APPDATA%25\VRCFaceTracking\CustomLibs&quot;" />
       <Exec Command="copy /y &quot;$(TargetDir)PicoFacialDataModule.pdb&quot; &quot;%25APPDATA%25\VRCFaceTracking\CustomLibs&quot;" />
+      <Exec Command="copy /y &quot;$(TargetDir)FaceBridge.Sdk.dll&quot; &quot;%25APPDATA%25\VRCFaceTracking\CustomLibs&quot;" />
   </Target>
 
 </Project>

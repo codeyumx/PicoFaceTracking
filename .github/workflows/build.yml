@@ -92,7 +92,7 @@ jobs:
       - name: Zip
         shell: pwsh
         run: |
-          Compress-Archive -Path "PicoFacialDataModule/bin/Release/net10.0/PicoFacialDataModule.dll", "module.json" -DestinationPath Pico4FaceTracking-VRCFT.zip -Force
+          Compress-Archive -Path "PicoFacialDataModule/bin/Release/net10.0/PicoFacialDataModule.dll", "PicoFacialDataModule/bin/Release/net10.0/FaceBridge.Sdk.dll", "module.json" -DestinationPath Pico4FaceTracking-VRCFT.zip -Force
           (Get-FileHash Pico4FaceTracking-VRCFT.zip -Algorithm SHA256).Hash.ToLower() + "  Pico4FaceTracking-VRCFT.zip" | Out-File -Encoding ascii Pico4FaceTracking-VRCFT.zip.sha256
           Get-Content Pico4FaceTracking-VRCFT.zip.sha256
 

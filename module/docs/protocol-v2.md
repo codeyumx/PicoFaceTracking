@@ -47,6 +47,7 @@ Session key: `K_s = HMAC-SHA256(K_enc, nP ‖ nH)`, 32 bytes, AES-256.
 | 5 | PING | headset to PC | empty |
 | 6 | PONG | PC to headset | empty |
 | 7 | STOP | PC to headset | empty |
+| 14 | INFO | headset to PC | model name: length byte (at most 64), then UTF-8, for example `PICO 4 Pro` |
 
 Body: `counter` (uint64), then `AES-256-GCM(K_s)` ciphertext and 16-byte tag.
 
@@ -58,6 +59,10 @@ Body: `counter` (uint64), then `AES-256-GCM(K_s)` ciphertext and 16-byte tag.
 Timing is unchanged from version 1: the headset pings every 25 seconds while streaming and every second while no
 data flows; it ends the session when no valid PONG arrives for 25 seconds or on STOP. The PC starts discovery again
 when nothing valid arrives for 2 seconds.
+
+The headset sends INFO right after every PING, so the PC learns the model as soon as the session starts. The name is
+PICO's product name (`sys.pxr.product.name`), or `Build.MODEL` when that is not set. A PC that does not know INFO
+ignores it, like any other unknown type.
 
 ## Downgrade
 
