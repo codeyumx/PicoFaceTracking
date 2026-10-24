@@ -103,9 +103,67 @@ jobs:
             module/Pico4FaceTracking-VRCFT.zip
             module/Pico4FaceTracking-VRCFT.zip.sha256
 
+  # The native OSCFT for VRC module in native/ (Rust, no .NET), one binary per platform.
+  native:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        working-directory: native
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - name: Tests
+        run: cargo test --release --locked
+
+      - name: Build
+        run: cargo build --release --locked
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: native-${{ matrix.os }}
+          path: |
+            native/target/release/Pico4FaceTracking
+            native/target/release/Pico4FaceTracking.exe
+          if-no-files-found: error
+
+  # One zip for both platforms: OSCFT starts Pico4FaceTracking.exe on Windows and Pico4FaceTracking on Linux.
+  native-zip:
+    needs: native
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: native-*
+          path: native-bin
+          merge-multiple: true
+
+      - name: Zip
+        run: |
+          mkdir zip
+          cp native-bin/Pico4FaceTracking native-bin/Pico4FaceTracking.exe zip/
+          chmod +x zip/Pico4FaceTracking
+          # Same version as the .NET module of this release.
+          jq --arg v "$(jq -r .Version module/module.json)" '.Version = $v' native/module.json > zip/module.json
+          (cd zip && zip -9 ../Pico4FaceTracking-OSCFT-native.zip Pico4FaceTracking Pico4FaceTracking.exe module.json)
+          sha256sum Pico4FaceTracking-OSCFT-native.zip | tee Pico4FaceTracking-OSCFT-native.zip.sha256
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Pico4FaceTracking-OSCFT-native
+          path: |
+            Pico4FaceTracking-OSCFT-native.zip
+            Pico4FaceTracking-OSCFT-native.zip.sha256
+
   release:
     if: startsWith(github.ref, 'refs/tags/v')
-    needs: [app, module]
+    needs: [app, module, native-zip]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/download-artifact@v4
@@ -121,11 +179,13 @@ jobs:
           NOTES="Install on the headset without a PC: open this page in PICO Browser on the headset, download PicoFaceTracking.apk, then open it from the download list (or Files) and install it. To update, install the new APK over the old one; settings are kept."
           NOTES="$NOTES"$'\n\n'"Install from a PC: Install face tracking app.bat, or: adb install -r PicoFaceTracking.apk. The tracking adjustments need a supporter licence, which is not available yet. SHA-256: $(cut -d' ' -f1 PicoFaceTracking.apk.sha256)"
           NOTES="$NOTES"$'\n\n'"PC: Pico 4 Face Tracking module $MODULE_VERSION. In VRCFaceTracking: Module Registry, +, Pico4FaceTracking-VRCFT.zip. SHA-256: $(cut -d' ' -f1 Pico4FaceTracking-VRCFT.zip.sha256)"
+          NOTES="$NOTES"$'\n\n'"OSCFT for VRC (0.2.0 or later): Pico4FaceTracking-OSCFT-native.zip is the same module as a native program for Windows and Linux, no .NET needed. Install it on the Modules page; it replaces the VRCFaceTracking version of the module and keeps the pairing. SHA-256: $(cut -d' ' -f1 Pico4FaceTracking-OSCFT-native.zip.sha256)"
           # A tag with a suffix (v1.9.3-rc1) is a pre-release and does not become the latest release.
           PRERELEASE=()
           [[ "$TAG" == *-* ]] && PRERELEASE=(--prerelease)
           gh release create "$TAG" PicoFaceTracking.apk PicoFaceTracking.apk.sha256 \
             Pico4FaceTracking-VRCFT.zip Pico4FaceTracking-VRCFT.zip.sha256 \
+            Pico4FaceTracking-OSCFT-native.zip Pico4FaceTracking-OSCFT-native.zip.sha256 \
             "${PRERELEASE[@]}" \
             --repo "$GITHUB_REPOSITORY" \
             --title "Pico Face Tracking ${TAG#v}" \

@@ -14,6 +14,9 @@ It works with either VRCFaceTracking module:
   the PC is recognised by its address.
 - **Pico 4 Face Tracking**, in [`module/`](module) of this repository: thoricelli's module plus pairing by code
   (protocol version 2, below). Each release has it as `Pico4FaceTracking-VRCFT.zip`.
+- **Pico 4 Face Tracking for OSCFT for VRC (native)**, in [`native/`](native): the same module as a native program
+  for [OSCFT for VRC](https://github.com/codeyumx/oscft_for_vrc) 0.2.0 or later, for Windows and Linux, no .NET
+  needed. Each release has it as `Pico4FaceTracking-OSCFT-native.zip`. It does not run in VRCFaceTracking.
 
 Download the APK and the module from [Releases](https://github.com/codeyumx/PicoFaceTracking/releases). Everything is
 free except the [tracking adjustments](#tracking-adjustments-supporters), which need a supporter licence. Licences are
@@ -179,6 +182,28 @@ git subtree pull --prefix=module https://github.com/thoricelli/PicoFacialDataMod
 Keep commits that change `module/` separate from app commits, so a split carries no app changes. Files under
 `module/` that only matter in thoricelli's repository (`module/.github`, `module/.gitmodules`) stay unchanged, so pulls
 merge cleanly; the root `.gitmodules` and `.github/workflows/build.yml` are the ones used here.
+
+## The native OSCFT module (`native/`)
+
+`native/` is a Rust port of the module in `module/` for OSCFT for VRC's native modules
+([spec](https://github.com/codeyumx/oscft_for_vrc/blob/main/spec/native-modules.md)), built on OSCFT's
+`fb-module-sdk`. It speaks the same protocols (version 1 and 2, pairing by code), maps the same expressions and uses
+the same pairing key file (`PicoFacialData/pairing-key.txt` in the user's config folder: `%APPDATA%` on Windows,
+`~/.config` on Linux), so switching between the two keeps the pairing. It has the same `ModuleId`, so installing it
+in OSCFT replaces the VRCFaceTracking version.
+
+Its options are in OSCFT's module settings panel instead of `PicoFacialDataModule.json`: eye tracking, face
+tracking, headset address, claim without a headset (these four apply when the modules restart) and the minimum eye
+openness for pupil size (applies at once). The panel also shows the headset model and the pairing code.
+
+```
+cd native
+cargo test
+cargo build --release   # target/release/Pico4FaceTracking(.exe)
+```
+
+The release zip holds `Pico4FaceTracking` (Linux), `Pico4FaceTracking.exe` (Windows) and `module.json`; OSCFT
+starts the one for its platform.
 
 ## Building
 
