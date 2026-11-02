@@ -4,28 +4,22 @@ An Android app for the PICO 4 Pro / Enterprise that sends eye and face tracking 
 [VRCFaceTracking](https://github.com/benaclejames/VRCFaceTracking) on your PC, without root and without adb
 after the first install. It keeps running in the background, so Virtual Desktop (or any other app) can stay in front.
 
-The app is new code, written for Android. It speaks the network protocol of
-[thoricelli/PicoFacialDataDaemon](https://github.com/thoricelli/PicoFacialDataDaemon) and builds on what thoricelli
-worked out about PICO's eye tracking service (the daemon and
-[PICO-documentation](https://github.com/thoricelli/PICO-documentation)); none of the daemon's code is included.
-It works with either VRCFaceTracking module:
+The app is new code, written for Android. It works with either of these OSC face tracking modules:
 
-- [Pico Facial Data Module](https://github.com/thoricelli/PicoFacialDataModule) 0.3 by thoricelli: original protocol,
-  the PC is recognised by its address.
-- **Pico 4 Face Tracking**, in [`module/`](module) of this repository: thoricelli's module plus pairing by code
-  (protocol version 2, below). Each release has it as `Pico4FaceTracking-VRCFT.zip`.
+- **Pico 4 Face Tracking**, in [`module/`](module) of this repository: `Pico4FaceTracking-VRCFT.zip`.
 - **Pico 4 Face Tracking for OSCFT for VRC (native)**, in [`native/`](native): the same module as a native program
-  for [OSCFT for VRC](https://github.com/codeyumx/oscft_for_vrc) 0.2.0 or later, for Windows and Linux, no .NET
-  needed. Each release has it as `Pico4FaceTracking-OSCFT-native.zip`. It does not run in VRCFaceTracking.
+  for [OSCFT for VRC](https://github.com/codeyumx/oscft_for_vrc) 0.2.0 or later, for Windows and Linux, faster, with no .NET
+  needed. Each release has it as `Pico4FaceTracking-OSCFT-native.zip`. (It does not run in VRCFaceTracking.)
 
-Download the APK and the module from [Releases](https://github.com/codeyumx/PicoFaceTracking/releases). Everything is
-free except the [tracking adjustments](#tracking-adjustments-supporters), which need a supporter licence. Licences are
-not available yet: if the app gets enough interest, more settings will follow, and a Patreon will give supporters
+# Download and Install
+
+Download the APK and the module from [Releases](https://github.com/codeyumx/PicoFaceTracking/releases). 
+
+Install the .apk on the Pico vr headset. Install the module in your OSC desktop software (OSC_for_VRC, VRCFT, etc).
+
+Everything is free except the additions and future updates like [tracking adjustments](#tracking-adjustments-supporters), which need a supporter licence. Licences are
+not available yet: if the app gets enough interest, more settings will follow, and a Patreon or other payment service will give supporters
 access to them.
-
-Closing the settings panel leaves tracking running in the background. The **Stop tracking and close the app** button at
-the bottom stops tracking and closes the app; tracking starts again the next time the app is opened or the headset
-restarts. To keep tracking off, switch off **Face and eye tracking** instead.
 
 VRCFaceTracking's Pico 4 Face Tracking module only claims eye and face tracking if the headset answers within 5 seconds
 of VRCFaceTracking starting. Switch tracking on in the app first; if VRCFaceTracking was already running (its log says
@@ -34,7 +28,7 @@ of VRCFaceTracking starting. Switch tracking on in the app first; if VRCFaceTrac
 ## Panel next to the running VR app
 
 The settings screen declares PICO's activity meta-data `pico.vr.position` = `near` (the same as PICO's own User Guide), so
-PICO opens it as a panel next to Virtual Desktop instead of switching apps, which would close Virtual Desktop.
+PICO opens it as a panel next to Virtual Desktop, so the settings and preview can be toggled as you use the tracking data.
 
 ## Settings
 
@@ -54,19 +48,16 @@ PICO opens it as a panel next to Virtual Desktop instead of switching apps, whic
 - **Language**: the flag buttons at the top of the Settings tab switch the app (both tabs) and the notification between
   English, Japanese and Simplified Chinese. Until one is picked, the app follows the headset's language. Tracking keeps
   running when the language changes. Expression names in the Test tab's table stay VRCFaceTracking's parameter names.
+- PICO's own switches (Settings > LAB, `key_et_enable` / `key_ft_enable` in `Settings.System`) cannot be changed by a
+sideloaded app. The app reads them and shows a warning under the eyes and mouth switches while either is off.
 
 ## Tracking adjustments (supporters)
-
-Applied on the headset to every frame before it is sent, and live while tracking runs. They are in the release APK and
-unlock with a supporter licence file, which is not available yet (see [Open core](#open-core)).
 
 - **Quick settings**: tongue out on/off, eye widen maximum, blink strength, smoothing. Switched-off expressions send 0.
 - **All expressions**: each of PICO's 52 expressions with on/off, strength (0-200%) and maximum (0-100%). The quick
   settings are shortcuts into these values. Eye blink settings also apply to eye openness, which drives blinking in
   Pico Facial Data Module.
 
-PICO's own switches (Settings > LAB, `key_et_enable` / `key_ft_enable` in `Settings.System`) cannot be changed by a
-sideloaded app. The app reads them and shows a warning under the eyes and mouth switches while either is off.
 
 ## Test tab
 
@@ -87,25 +78,19 @@ The tab runs the headset's eye and face tracking while it is shown, even when tr
 when you leave the tab or close the panel. It shares the running tracking with the connection to the PC, so it does not
 interrupt VRCFaceTracking.
 
-## Pairing by code (protocol version 2, optional)
+## Pairing by code (optional)
 
 Once paired by code, the app answers only a PC that proves it holds the pairing key, from any address, and encrypts the
-frames (AES-256-GCM). No cable and no PC software besides VRCFaceTracking:
+frames (AES-256-GCM).
 
 1. In the app, press **Pair by code**.
-2. VRCFaceTracking, with the Pico 4 Face Tracking module, shows
-   `Pairing code for <headset> (<address>): 123 456` on its Output page. In
-   [OSCFT for VRC](https://github.com/codeyumx/oscft_for_vrc) the code is also under **Pairing** in the module's
+2. The OSC desktop app, with the module installed, shows
+   `Pairing code for <headset> (<address>): 123 456` on its output page or settings panel. In
+   [OSCFT for VRC](https://github.com/codeyumx/oscft_for_vrc) the code is under **Pairing** in the module's
    settings.
-3. Type the code in the app and press **Pair**. Both sides now hold a new random key; the module switches to it at
-   once and saves it in `%APPDATA%\PicoFacialData\pairing-key.txt`.
-
-The code never crosses the network: SPAKE2 turns it into the key, and someone who does not know it gets one guess per
-code. **Pair again by code** makes a new key and replaces the old one on both sides. Tracking pauses while the app waits
-for a code (at most 5 minutes). The protocol is described in [module/docs/protocol-v2.md](module/docs/protocol-v2.md).
-
-To turn it off, press **Remove pairing key**: the app pairs by address again and works with thoricelli's original
-module. Without a key the app speaks the original protocol.
+3. Type the code in the app and press **Pair**. Both sides now hold a new random key. The module switches to it and saves it in `%APPDATA%\PicoFacialData\pairing-key.txt`.
+**Pair again by code** makes a new key and replaces the old one on both sides. Tracking pauses while the app waits
+for a code (at most 5 minutes). The protocol is described in [module/docs/protocol-v2.md](module/docs/protocol-v2.md). Without a key the app speaks the original protocol.
 
 ## VRCFaceTracking with Pico4SAFTExtTrackingModule installed too
 
@@ -121,26 +106,7 @@ into the release APK only: `PaidFeatures` is the interface they implement, `Paid
 `app/build.gradle` adds `pro/src` to the sources when it exists. A build from this repository alone has no adjustments;
 the settings screen says so.
 
-A licence is a small text file signed with the author's private key (ECDSA P-256, SHA-256); `Licence.java` holds the
-public key and checks it on the headset, offline:
-
-```
-Pico Face Tracking licence
-licensee: Supporters
-expires: 2026-11-30
-signature: MEUCIQ...
-```
-
-`expires` is optional (last valid day). Import it in the app (**Import licence file**), let `Install face tracking app.bat`
-send it, or over adb (Base64 of the file; empty removes it):
-
-```
-adb shell am broadcast -n io.github.codeyumx.picofacetracking/.AdbControlReceiver --es licence <Base64 of the file>
-```
-
-The reply includes `licence=none|valid|expired` and `adjustments=in-build|not-in-build`.
-
-## Install
+## Install with adb
 
 ```
 adb install -r PicoFaceTracking.apk
@@ -160,29 +126,6 @@ An empty `pc_address` forgets the paired PC.
 so other apps on the headset cannot start tracking or redirect it. On the PC, install the Pico 4 Face Tracking module in
 VRCFaceTracking: Module Registry, **+**, `Pico4FaceTracking-VRCFT.zip` from the release.
 
-## How it works
-
-The app talks to PICO's `pxreyetrackingservice` over binder (`StartAlgorithm`, `GetTrackingDataSharedMemory`,
-`StopAlgorithm`), maps the shared ring buffers read-only, and streams the newest results over UDP port 9030 using the
-daemon's protocol (`DISCOVER_DAEMON`, `MARCO`/`POLO`, `STOP`). Each packet is 384 bytes of face data followed by
-152 bytes of eye data, the layout Pico Facial Data Module 0.3 accepts.
-
-Without a pairing key the data is not encrypted; use a network you trust. With a pairing key, see above.
-
-## The PC module (`module/`)
-
-`module/` is a [git subtree](https://git-scm.com/book/en/v2/Git-Tools-Advanced-Merging#_subtree_merge) of
-[thoricelli/PicoFacialDataModule](https://github.com/thoricelli/PicoFacialDataModule) with pairing by code added
-(MIT, thoricelli; see `module/LICENSE`). Its full history is kept, so thoricelli's changes merge in:
-
-```
-git subtree pull --prefix=module https://github.com/thoricelli/PicoFacialDataModule main
-```
-
-Keep commits that change `module/` separate from app commits, so a split carries no app changes. Files under
-`module/` that only matter in thoricelli's repository (`module/.github`, `module/.gitmodules`) stay unchanged, so pulls
-merge cleanly; the root `.gitmodules` and `.github/workflows/build.yml` are the ones used here.
-
 ## The native OSCFT module (`native/`)
 
 `native/` is a Rust port of the module in `module/` for OSCFT for VRC's native modules
@@ -191,26 +134,6 @@ merge cleanly; the root `.gitmodules` and `.github/workflows/build.yml` are the 
 the same pairing key file (`PicoFacialData/pairing-key.txt` in the user's config folder: `%APPDATA%` on Windows,
 `~/.config` on Linux), so switching between the two keeps the pairing. It has the same `ModuleId`, so installing it
 in OSCFT replaces the VRCFaceTracking version.
-
-Its options are in OSCFT's module settings panel instead of `PicoFacialDataModule.json`: eye tracking, face
-tracking, headset address, claim without a headset (these four apply when the modules restart) and the minimum eye
-openness for pupil size (applies at once). The panel also shows the headset model and the pairing code.
-
-```
-cd native
-cargo test
-cargo build --release   # target/release/Pico4FaceTracking(.exe)
-```
-
-The release zip holds `Pico4FaceTracking` (Linux), `Pico4FaceTracking.exe` (Windows) and `module.json`; OSCFT
-starts the one for its platform.
-
-## Building
-
-GitHub Actions builds the free app (and runs its unit tests) and the PC module (and runs its tests) on every push to
-`main` and on pull requests. A `v*` tag builds the release APK with the paid features (checked out from the private
-repository with the `PRO_DEPLOY_KEY` deploy key) and publishes the APK and `Pico4FaceTracking-VRCFT.zip` as a
-GitHub release; a tag with a suffix such as `v1.9.3-rc1` publishes a pre-release instead. Signing uses two repository secrets: `SIGNING_KEYSTORE_BASE64` (a PKCS#12 keystore with key alias `picofacetracking`) and `SIGNING_PASSWORD`.
 
 Clone with `git clone --recursive` (the module builds against the `module/VRCFaceTracking` and `module/oscft_for_vrc`
 submodules).
