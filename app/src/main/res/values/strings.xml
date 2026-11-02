@@ -89,7 +89,7 @@
     <string name="start_at_boot">Start when the headset turns on</string>
 
     <string name="section_pc">On the PC</string>
-    <string name="pc_help">Install VRCFaceTracking on the PC, then install the \"Pico 4 Face Tracking\" module in VRCFaceTracking (it can pair by code), or thoricelli\'s Pico Facial Data Module, which pairs by address. Pico4SAFTExtTrackingModule can stay installed: it only starts while PICO Connect or Streaming Assistant runs on the PC. Tracking only flows while the headset is worn.</string>
+    <string name="pc_help">On the PC, install OSCFT for VRC (recommended) with the \"Pico 4 Face Tracking\" native module, or VRCFaceTracking with the \"Pico 4 Face Tracking\" module. Pico4SAFTExtTrackingModule can stay installed: it only starts while PICO Connect or Streaming Assistant runs on the PC. Tracking only flows while the headset is worn.</string>
     <string name="section_no_connection">If the PC does not connect</string>
     <!-- "No PICO headset answered" is VRCFaceTracking's log text; keep it in English. -->
     <string name="no_connection_help">Pico 4 Face Tracking only takes over eye and face tracking if this headset answers within 5 seconds of VRCFaceTracking starting. If VRCFaceTracking was started before tracking was switched on here (or before the headset was on), its log says \"No PICO headset answered\": switch tracking on, then restart VRCFaceTracking.</string>

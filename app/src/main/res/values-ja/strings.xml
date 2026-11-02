@@ -80,7 +80,7 @@
     <string name="start_at_boot">ヘッドセットの起動時に開始する</string>
 
     <string name="section_pc">PC 側</string>
-    <string name="pc_help">PC に VRCFaceTracking をインストールし、VRCFaceTracking に「Pico 4 Face Tracking」モジュール(コードでペアリング可能)か、アドレスでペアリングする thoricelli の Pico Facial Data Module をインストールしてください。Pico4SAFTExtTrackingModule はインストールしたままで構いません。PC で PICO Connect か Streaming Assistant が動作しているときにだけ起動します。トラッキングはヘッドセットを装着している間だけ送信されます。</string>
+    <string name="pc_help">PC に OSCFT for VRC(推奨)と「Pico 4 Face Tracking」ネイティブモジュール、または VRCFaceTracking と「Pico 4 Face Tracking」モジュールをインストールしてください。Pico4SAFTExtTrackingModule はインストールしたままで構いません。PC で PICO Connect か Streaming Assistant が動作しているときにだけ起動します。トラッキングはヘッドセットを装着している間だけ送信されます。</string>
     <string name="section_no_connection">PC が接続しない場合</string>
     <string name="no_connection_help">Pico 4 Face Tracking は、VRCFaceTracking の起動から 5 秒以内にこのヘッドセットが応答した場合にだけ、アイトラッキングとフェイストラッキングを引き継ぎます。ここでトラッキングをオンにする前(またはヘッドセットの電源を入れる前)に VRCFaceTracking を起動した場合、ログに「No PICO headset answered」と表示されます。トラッキングをオンにしてから、VRCFaceTracking を再起動してください。</string>
     <string name="section_after_restart">再起動後</string>

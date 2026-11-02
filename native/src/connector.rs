@@ -1,4 +1,4 @@
-//! The tracking connection to the headset: protocol version 1 (thoricelli's daemon protocol, PC found by address)
+//! The tracking connection to the headset: protocol version 1 (plain frames, PC found by address)
 //! or, with a pairing key, version 2 (authenticated handshake, encrypted frames). Port of the .NET module's
 //! `PicoFacialModuleConnector` and `PairedConnector`.
 

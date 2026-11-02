@@ -1,21 +1,23 @@
 # Pico Face Tracking
 
 An Android app for the PICO 4 Pro / Enterprise that sends eye and face tracking to
+[OSCFT for VRC](https://github.com/codeyumx/oscft_for_vrc) (recommended) or
 [VRCFaceTracking](https://github.com/benaclejames/VRCFaceTracking) on your PC, without root and without adb
 after the first install. It keeps running in the background, so Virtual Desktop (or any other app) can stay in front.
 
-The app is new code, written for Android. It works with either of these OSC face tracking modules:
+The app is new code, written for Android. Use one of these modules on the PC:
 
-- **Pico 4 Face Tracking**, in [`module/`](module) of this repository: `Pico4FaceTracking-VRCFT.zip`.
-- **Pico 4 Face Tracking for OSCFT for VRC (native)**, in [`native/`](native): the same module as a native program
-  for [OSCFT for VRC](https://github.com/codeyumx/oscft_for_vrc) 0.2.0 or later, for Windows and Linux, faster, with no .NET
-  needed. Each release has it as `Pico4FaceTracking-OSCFT-native.zip`. (It does not run in VRCFaceTracking.)
+1. **OSCFT for VRC (recommended)**: `Pico4FaceTracking-OSCFT-native.zip`, in [`native/`](native). A native module for
+   [OSCFT for VRC](https://github.com/codeyumx/oscft_for_vrc) 0.2.0 or later, for Windows and Linux, faster, with no
+   .NET needed. (It does not run in VRCFaceTracking.)
+2. **VRCFaceTracking**: `Pico4FaceTracking-VRCFT.zip`, in [`module/`](module). The same module for VRCFaceTracking
+   (it also runs in OSCFT for VRC).
 
 # Download and Install
 
 Download the APK and the module from [Releases](https://github.com/codeyumx/PicoFaceTracking/releases). 
 
-Install the .apk on the Pico vr headset. Install the module in your OSC desktop software (OSC_for_VRC, VRCFT, etc).
+Install the .apk on the Pico VR headset. Install the module in OSCFT for VRC (recommended) or VRCFaceTracking.
 
 Everything is free except the additions and future updates like [tracking adjustments](#tracking-adjustments-supporters), which need a supporter licence. Licences are
 not available yet: if the app gets enough interest, more settings will follow, and a Patreon or other payment service will give supporters
@@ -55,8 +57,8 @@ sideloaded app. The app reads them and shows a warning under the eyes and mouth 
 
 - **Quick settings**: tongue out on/off, eye widen maximum, blink strength, smoothing. Switched-off expressions send 0.
 - **All expressions**: each of PICO's 52 expressions with on/off, strength (0-200%) and maximum (0-100%). The quick
-  settings are shortcuts into these values. Eye blink settings also apply to eye openness, which drives blinking in
-  Pico Facial Data Module.
+  settings are shortcuts into these values. Eye blink settings also apply to eye openness, which drives blinking in the
+  Pico 4 Face Tracking module.
 
 
 ## Test tab

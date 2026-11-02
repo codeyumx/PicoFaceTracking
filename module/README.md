@@ -1,10 +1,12 @@
 # Pico 4 Face Tracking (VRCFaceTracking module)
 
 A VRCFaceTracking module for the PICO 4 Pro and PICO 4 Enterprise, the PICO headsets with eye and face tracking cameras.
-It receives eye and face tracking over the local network from the Pico Face Tracking app on the headset. It is based on
-thoricelli's Pico Facial Data Module and also works with thoricelli's `picofacialdatadaemon`.
+It receives eye and face tracking over the local network from the Pico Face Tracking app on the headset.
 
 ## Running
+
+For [OSCFT for VRC](https://github.com/codeyumx/oscft_for_vrc) (recommended), use the native module
+`Pico4FaceTracking-OSCFT-native.zip` from [`native/`](../native) instead. For VRCFaceTracking:
 
 1. Download `Pico4FaceTracking-VRCFT.zip` from the releases.
 2. In VRCFaceTracking go to Module Registry > Press the plus at the top.

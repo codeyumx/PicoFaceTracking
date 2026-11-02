@@ -81,7 +81,7 @@
     <string name="start_at_boot">头显开机时启动</string>
 
     <string name="section_pc">电脑端</string>
-    <string name="pc_help">在电脑上安装 VRCFaceTracking,然后在 VRCFaceTracking 中安装“Pico 4 Face Tracking”模块(可通过配对码配对),或 thoricelli 的 Pico Facial Data Module(通过地址配对)。Pico4SAFTExtTrackingModule 可以继续保留:它只在电脑上运行 PICO Connect 或 Streaming Assistant 时启动。只有佩戴头显时才会传输追踪数据。</string>
+    <string name="pc_help">在电脑上安装 OSCFT for VRC(推荐)及“Pico 4 Face Tracking”原生模块,或安装 VRCFaceTracking 及“Pico 4 Face Tracking”模块。Pico4SAFTExtTrackingModule 可以继续保留:它只在电脑上运行 PICO Connect 或 Streaming Assistant 时启动。只有佩戴头显时才会传输追踪数据。</string>
     <string name="section_no_connection">如果电脑无法连接</string>
     <string name="no_connection_help">只有在 VRCFaceTracking 启动后 5 秒内此头显作出响应,Pico 4 Face Tracking 才会接管眼动追踪和面部追踪。如果在此处开启追踪之前(或头显开机之前)就已启动 VRCFaceTracking,其日志会显示“No PICO headset answered”:请开启追踪,然后重启 VRCFaceTracking。</string>
     <string name="section_after_restart">重启后</string>
