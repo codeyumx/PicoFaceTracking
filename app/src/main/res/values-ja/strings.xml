@@ -94,9 +94,13 @@
     <string name="update_current">最新バージョンです(%1$s)。</string>
     <string name="update_failed">更新を確認できませんでした: %1$s</string>
     <string name="open_latest_release">GitHub で最新リリースを開く</string>
-    <string name="no_browser">ブラウザがインストールされていません。最新リリースはこちらです: %1$s</string>
+    <string name="no_browser">ブラウザがインストールされていません。別の端末で %1$s を開いてください。</string>
     <string name="section_privacy">プライバシー</string>
-    <string name="privacy_help">トラッキングデータはローカルネットワーク上の PC にだけ送信され(コードでペアリングした場合は暗号化)、インターネットには送信されません。設定、ペアリングキー、ライセンスはヘッドセット内に保存されます。アカウント、アクセス解析、広告はありません。インターネットに接続するのは、「更新を確認」を押したとき(api.github.com)と、最新リリースを開いたとき(ブラウザで github.com)だけです。詳しくは github.com/codeyumx/PicoFaceTracking/blob/main/PRIVACY.md をご覧ください。</string>
+    <string name="privacy_help">トラッキングデータはローカルネットワーク上の PC にだけ送信されます。アプリがインターネットに接続するのは、更新を確認するときと GitHub のページを開くときだけです。</string>
+    <string name="privacy_details">プライバシーとデータ</string>
+    <string name="privacy_close">閉じる</string>
+    <string name="privacy_full_policy">GitHub で全文を見る</string>
+    <string name="privacy_dialog">Pico Face Tracking は個人データを収集しません。作者はサーバーを運用しておらず、アカウント、アクセス解析、クラッシュレポート、広告はありません。\n\nトラッキング: トラッキングがオンでヘッドセットを装着している間、アイトラッキングとフェイストラッキングの値、およびヘッドセットのモデル名(例: PICO 4 Enterprise)がローカルネットワーク上の PC に送信されます(UDP ポート 9030)。コードでペアリングした場合は暗号化され、アドレスでペアリングした場合は暗号化されません。トラッキングデータがインターネットに送信されることはありません。\n\n検出とペアリング: アプリはローカルネットワーク上で PC モジュールの検出リクエストに応答します。コードでペアリングする間は、ヘッドセットのデバイス名を送信します。コード自体はヘッドセットから送信されません。\n\n更新: 「更新を確認」を押したときにだけ、アプリは HTTPS で GitHub(api.github.com)に最新リリースを問い合わせます。「GitHub で最新リリースを開く」と「GitHub で全文を見る」はブラウザで github.com を開きます。一般的なウェブサイトと同様に、GitHub にはヘッドセットの IP アドレスと時刻が伝わります。アプリが自動で確認することはありません。\n\nヘッドセット内: 設定、ペアリングキー、取り込んだライセンスはアプリの専用ストレージに保存され、アプリをアンインストールすると削除されます。ライセンスはオフラインで検証されます。\n\nPICO OS と PICO のトラッキングサービスには、それぞれ独自のプライバシーポリシーがあります。</string>
     <string name="stop_and_close">トラッキングを停止してアプリを閉じる</string>
     <string name="stop_and_close_help">次にこのアプリを開くかヘッドセットを再起動すると、トラッキングは再開します。オフのままにするには、上の「フェイス・アイトラッキング」をオフにしてください。</string>
 
