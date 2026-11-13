@@ -95,6 +95,21 @@
     <string name="no_connection_help">Pico 4 Face Tracking only takes over eye and face tracking if this headset answers within 5 seconds of VRCFaceTracking starting. If VRCFaceTracking was started before tracking was switched on here (or before the headset was on), its log says \"No PICO headset answered\": switch tracking on, then restart VRCFaceTracking.</string>
     <string name="section_after_restart">After a restart</string>
     <string name="after_restart_help">If tracking does not come back by itself, open this app once. It opens as a panel next to Virtual Desktop without closing it.</string>
+    <string name="section_updates">App updates</string>
+    <string name="installed_version">Installed version: %1$s</string>
+    <string name="updates_help">The app only checks when you press the button. It then asks GitHub (api.github.com) for the latest release. GitHub sees the headset\'s IP address, like any website you visit. Nothing about you or your tracking is sent.</string>
+    <string name="check_for_updates">Check for updates</string>
+    <string name="update_checking">Checking GitHub…</string>
+    <string name="update_available">Version %1$s is available (installed: %2$s). Open the latest release to download it.</string>
+    <string name="update_current">You have the latest version (%1$s).</string>
+    <string name="update_failed">Could not check for updates: %1$s</string>
+    <string name="open_latest_release">Open the latest release on GitHub</string>
+    <string name="no_browser">No browser is installed. Open %1$s on another device.</string>
+    <string name="section_privacy">Privacy</string>
+    <string name="privacy_help">Tracking data goes only to your PC on the local network. The app connects to the internet only when you check for updates or open a GitHub page.</string>
+    <string name="privacy_details">Privacy and data</string>
+    <string name="privacy_close">Close</string>
+    <string name="privacy_full_policy">Full policy on GitHub</string>
     <string name="stop_and_close">Stop tracking and close the app</string>
     <string name="stop_and_close_help">Tracking starts again the next time you open this app or restart the headset. To keep it off, switch off \"Face and eye tracking\" at the top instead.</string>
 

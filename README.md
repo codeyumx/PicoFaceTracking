@@ -13,6 +13,16 @@ The app is new code, written for Android. Use one of these modules on the PC:
 2. **VRCFaceTracking**: `Pico4FaceTracking-VRCFT.zip`, in [`module/`](module). The same module for VRCFaceTracking
    (it also runs in OSCFT for VRC).
 
+The app is available in:
+
+| Language | Native name |
+| --- | --- |
+| English | 🇬🇧 English |
+| Japanese | 🇯🇵 日本語 |
+| Simplified Chinese | 🇨🇳 简体中文 |
+
+This README is in English only.
+
 # Download and Install
 
 Download the APK and the module from [Releases](https://github.com/codeyumx/PicoFaceTracking/releases). 
@@ -52,6 +62,13 @@ PICO opens it as a panel next to Virtual Desktop, so the settings and preview ca
   running when the language changes. Expression names in the Test tab's table stay VRCFaceTracking's parameter names.
 - PICO's own switches (Settings > LAB, `key_et_enable` / `key_ft_enable` in `Settings.System`) cannot be changed by a
 sideloaded app. The app reads them and shows a warning under the eyes and mouth switches while either is off.
+- **App updates**: shows the installed version. **Check for updates** asks GitHub's API for the latest release
+  (pre-releases excluded) and says whether a newer version exists; **Open the latest release on GitHub** opens its
+  page in the browser. The app never checks by itself.
+- **Privacy**: a short summary, and **Privacy and data** opens a dialog with the privacy policy in the language shown:
+  [PRIVACY.md](PRIVACY.md), [PRIVACY.ja.md](PRIVACY.ja.md) or [PRIVACY.zh.md](PRIVACY.zh.md) from the repository root,
+  bundled into the app at build time. Tracking goes only to your PC on the local network; the update check and the
+  GitHub pages are the app's only connections to the internet.
 
 ## Tracking adjustments (supporters)
 

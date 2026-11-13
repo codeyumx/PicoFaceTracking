@@ -1,6 +1,8 @@
 package io.github.codeyumx.picofacetracking;
 
 import android.app.Activity;
+import android.app.AlertDialog;
+import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -10,6 +12,7 @@ import android.graphics.drawable.GradientDrawable;
 import android.graphics.drawable.InsetDrawable;
 import android.graphics.drawable.RippleDrawable;
 import android.graphics.drawable.StateListDrawable;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -31,6 +34,7 @@ import android.widget.TextView;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.UncheckedIOException;
 import java.net.Inet4Address;
 import java.net.InetSocketAddress;
 import java.nio.charset.StandardCharsets;
@@ -173,6 +177,7 @@ public final class MainActivity extends Activity {
         content.addView(text(getString(R.string.no_connection_help), 15));
         content.addView(heading(R.string.section_after_restart));
         content.addView(text(getString(R.string.after_restart_help), 15));
+        addUpdates(content);
 
         // Closing the panel normally leaves tracking running; this button is for the rare full stop. The tracking
         // switch stays on, so tracking comes back the next time the app opens or the headset starts.
@@ -525,6 +530,77 @@ public final class MainActivity extends Activity {
         heading.setTypeface(Typeface.DEFAULT_BOLD);
         heading.setPadding(0, dp(20), 0, dp(4));
         return heading;
+    }
+
+    /**
+     * The installed version, a check against GitHub's latest release, a link to that release, and the privacy summary
+     * (PRIVACY.md), since the check is the app's only connection outside the local network.
+     */
+    private void addUpdates(LinearLayout content) {
+        String installed;
+        try {
+            installed = getPackageManager().getPackageInfo(getPackageName(), 0).versionName;
+        } catch (PackageManager.NameNotFoundException e) {
+            throw new IllegalStateException(e);
+        }
+        content.addView(heading(R.string.section_updates));
+        content.addView(text(getString(R.string.installed_version, installed), 15));
+        content.addView(text(getString(R.string.updates_help), 15));
+        Button check = new Button(this);
+        check.setText(R.string.check_for_updates);
+        TextView result = text("", 15);
+        check.setOnClickListener(view -> {
+            check.setEnabled(false);
+            result.setText(R.string.update_checking);
+            new Thread(() -> {
+                Text shown = UpdateCheck.check(installed);
+                runOnUiThread(() -> {
+                    if (isDestroyed())
+                        return;
+                    result.setText(shown.get(this));
+                    check.setEnabled(true);
+                });
+            }, "UpdateCheck").start();
+        });
+        content.addView(check);
+        content.addView(result);
+        Button open = new Button(this);
+        open.setText(R.string.open_latest_release);
+        open.setOnClickListener(view -> {
+            try {
+                startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(UpdateCheck.LATEST_RELEASE_PAGE)));
+            } catch (ActivityNotFoundException e) {
+                result.setText(getString(R.string.no_browser, UpdateCheck.LATEST_RELEASE_PAGE));
+            }
+        });
+        content.addView(open);
+        content.addView(heading(R.string.section_privacy));
+        content.addView(text(getString(R.string.privacy_help), 15));
+        Button details = new Button(this);
+        details.setText(R.string.privacy_details);
+        details.setOnClickListener(view -> {
+            CharSequence policy;
+            try {
+                policy = PrivacyPolicy.text(this);
+            } catch (IOException e) {
+                // The files are bundled by app/build.gradle; a missing one is a broken build.
+                throw new UncheckedIOException(e);
+            }
+            String page = PrivacyPolicy.url(this);
+            new AlertDialog.Builder(this)
+                    .setTitle(R.string.privacy_details)
+                    .setMessage(policy)
+                    .setPositiveButton(R.string.privacy_close, null)
+                    .setNeutralButton(R.string.privacy_full_policy, (dialog, which) -> {
+                        try {
+                            startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(page)));
+                        } catch (ActivityNotFoundException e) {
+                            result.setText(getString(R.string.no_browser, page));
+                        }
+                    })
+                    .show();
+        });
+        content.addView(details);
     }
 
     /** The eyes and mouth switches (see FaceParts); they apply to a running tracker at once. */

@@ -85,6 +85,21 @@
     <string name="no_connection_help">Pico 4 Face Tracking は、VRCFaceTracking の起動から 5 秒以内にこのヘッドセットが応答した場合にだけ、アイトラッキングとフェイストラッキングを引き継ぎます。ここでトラッキングをオンにする前(またはヘッドセットの電源を入れる前)に VRCFaceTracking を起動した場合、ログに「No PICO headset answered」と表示されます。トラッキングをオンにしてから、VRCFaceTracking を再起動してください。</string>
     <string name="section_after_restart">再起動後</string>
     <string name="after_restart_help">トラッキングが自動で再開しない場合は、このアプリを一度開いてください。Virtual Desktop を閉じずに、その横にパネルとして開きます。</string>
+    <string name="section_updates">アプリの更新</string>
+    <string name="installed_version">インストール済みのバージョン: %1$s</string>
+    <string name="updates_help">ボタンを押したときにだけ確認します。その際、GitHub(api.github.com)に最新リリースを問い合わせます。一般的なウェブサイトと同様に、GitHub にはヘッドセットの IP アドレスが伝わります。あなた自身やトラッキングに関する情報は送信されません。</string>
+    <string name="check_for_updates">更新を確認</string>
+    <string name="update_checking">GitHub を確認しています…</string>
+    <string name="update_available">バージョン %1$s が利用できます(インストール済み: %2$s)。最新リリースを開いてダウンロードしてください。</string>
+    <string name="update_current">最新バージョンです(%1$s)。</string>
+    <string name="update_failed">更新を確認できませんでした: %1$s</string>
+    <string name="open_latest_release">GitHub で最新リリースを開く</string>
+    <string name="no_browser">ブラウザがインストールされていません。別の端末で %1$s を開いてください。</string>
+    <string name="section_privacy">プライバシー</string>
+    <string name="privacy_help">トラッキングデータはローカルネットワーク上の PC にだけ送信されます。アプリがインターネットに接続するのは、更新を確認するときと GitHub のページを開くときだけです。</string>
+    <string name="privacy_details">プライバシーとデータ</string>
+    <string name="privacy_close">閉じる</string>
+    <string name="privacy_full_policy">GitHub で全文を見る</string>
     <string name="stop_and_close">トラッキングを停止してアプリを閉じる</string>
     <string name="stop_and_close_help">次にこのアプリを開くかヘッドセットを再起動すると、トラッキングは再開します。オフのままにするには、上の「フェイス・アイトラッキング」をオフにしてください。</string>
 
