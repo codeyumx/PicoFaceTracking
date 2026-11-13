@@ -53,3 +53,18 @@ git push origin v1.12.1
 
 The tag build adds the paid features from the private repository and publishes the APK, `Pico4FaceTracking-VRCFT.zip`,
 `Pico4FaceTracking-OSCFT-native.zip` and their checksums as a GitHub release.
+
+### Release notes
+
+The `release` job in `.github/workflows/build.yml` writes the notes. Keep them short. Installation details belong in
+the README, and the checksums are already attached as `.sha256` files:
+
+```markdown
+Install `PicoFaceTracking.apk` on your headset, then install the tracking module in OSCFT.
+
+**Which module (1.12.0)**
+- [OSCFT for VRC](https://github.com/codeyumx/oscft_for_vrc) 0.2.0 or later: `Pico4FaceTracking-OSCFT-native.zip`
+  (native, Windows and Linux, no .NET). Install it on the Modules page.
+- [VRCFaceTracking](https://github.com/benaclejames/VRCFaceTracking): `Pico4FaceTracking-VRCFT.zip`. Module Registry,
+  +, pick the zip.
+```

@@ -176,10 +176,11 @@ jobs:
           TAG: ${{ github.ref_name }}
         run: |
           MODULE_VERSION=$(unzip -p Pico4FaceTracking-VRCFT.zip module.json | jq -r .Version)
-          NOTES="Install on the headset without a PC: open this page in PICO Browser on the headset, download PicoFaceTracking.apk, then open it from the download list (or Files) and install it. To update, install the new APK over the old one; settings are kept."
-          NOTES="$NOTES"$'\n\n'"Install from a PC: Install face tracking app.bat, or: adb install -r PicoFaceTracking.apk. The tracking adjustments need a supporter licence, which is not available yet. SHA-256: $(cut -d' ' -f1 PicoFaceTracking.apk.sha256)"
-          NOTES="$NOTES"$'\n\n'"PC: Pico 4 Face Tracking module $MODULE_VERSION. In VRCFaceTracking: Module Registry, +, Pico4FaceTracking-VRCFT.zip. SHA-256: $(cut -d' ' -f1 Pico4FaceTracking-VRCFT.zip.sha256)"
-          NOTES="$NOTES"$'\n\n'"OSCFT for VRC (0.2.0 or later): Pico4FaceTracking-OSCFT-native.zip is the same module as a native program for Windows and Linux, no .NET needed. Install it on the Modules page; it replaces the VRCFaceTracking version of the module and keeps the pairing. SHA-256: $(cut -d' ' -f1 Pico4FaceTracking-OSCFT-native.zip.sha256)"
+          # Short notes; the full instructions are in the README. Checksums are the .sha256 files attached to the release.
+          NOTES="Install \`PicoFaceTracking.apk\` on your headset, then install the tracking module in OSCFT."
+          NOTES="$NOTES"$'\n\n'"**Which module (${MODULE_VERSION})**"
+          NOTES="$NOTES"$'\n'"- [OSCFT for VRC](https://github.com/codeyumx/oscft_for_vrc) 0.2.0 or later: \`Pico4FaceTracking-OSCFT-native.zip\` (native, Windows and Linux, no .NET). Install it on the Modules page."
+          NOTES="$NOTES"$'\n'"- [VRCFaceTracking](https://github.com/benaclejames/VRCFaceTracking): \`Pico4FaceTracking-VRCFT.zip\`. Module Registry, +, pick the zip."
           # A tag with a suffix (v1.9.3-rc1) is a pre-release and does not become the latest release.
           PRERELEASE=()
           [[ "$TAG" == *-* ]] && PRERELEASE=(--prerelease)
