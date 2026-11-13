@@ -118,6 +118,12 @@
     <string name="test_live">ライブ。目: %1$s、顔: %2$s。</string>
     <string name="test_seen">検出</string>
     <string name="test_not_seen">未検出</string>
+    <string name="test_reset_help">PICO Connect を使った後、目がグレーのまま、またはまばたきしか動かない場合: PICO Connect はヘッドセットのフェイストラッキングをリップシンクモードのままにすることがあり、ヘッドセットを再起動するまで目が「未検出」になります。「トラッキングをリセット」はこれを止め、このアプリのアイトラッキングとフェイストラッキングを開始し直します。先に PICO Connect のフェイストラッキングを止めてください。</string>
+    <string name="test_reset">トラッキングをリセット</string>
+    <string name="test_resetting">ヘッドセットのアイトラッキングとフェイストラッキングをリセットしています…</string>
+    <string name="test_reset_done">リセットしました。まもなくトラッキングが再開します。目がグレーのままなら、ヘッドセットを再起動してください。</string>
+    <string name="test_reset_still_running">別のアプリ(PICO Connect など)がまだアイトラッキングかフェイストラッキングを使用しています。そのフェイストラッキングを止めてもう一度リセットするか、ヘッドセットを再起動してください。</string>
+    <string name="test_reset_failed">トラッキングをリセットできません(%1$s)。ヘッドセットを再起動してください。</string>
     <string name="eye_left">"左 "</string>
     <string name="eye_right">"右 "</string>
     <string name="eye_not_seen">未検出</string>

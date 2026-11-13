@@ -2,6 +2,7 @@ package io.github.codeyumx.picofacetracking;
 
 import android.view.Choreographer;
 import android.view.View;
+import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
@@ -41,6 +42,29 @@ final class TestTab {
         status = activity.text("", 16);
         content.addView(status);
         content.addView(activity.text(activity.getString(R.string.test_note), 15));
+        content.addView(activity.text(activity.getString(R.string.test_reset_help), 15));
+        Button reset = new Button(activity);
+        reset.setText(R.string.test_reset);
+        TextView resetResult = activity.text("", 15);
+        reset.setOnClickListener(button -> {
+            reset.setEnabled(false);
+            resetResult.setText(R.string.test_resetting);
+            new Thread(() -> {
+                Text result;
+                try {
+                    result = new Text(EyeTrackingService.connect().reset() ? R.string.test_reset_done : R.string.test_reset_still_running);
+                } catch (EyeTrackingService.ServiceException e) {
+                    result = new Text(R.string.test_reset_failed, e.getMessage());
+                }
+                Text shown = result;
+                activity.runOnUiThread(() -> {
+                    resetResult.setText(shown.get(activity));
+                    reset.setEnabled(true);
+                });
+            }, "TrackingReset").start();
+        });
+        content.addView(reset);
+        content.addView(resetResult);
 
         content.addView(activity.heading(R.string.test_section_eyes));
         content.addView(activity.text(activity.getString(R.string.test_eyes_help), 15));

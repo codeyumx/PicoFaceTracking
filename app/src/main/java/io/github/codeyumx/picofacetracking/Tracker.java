@@ -251,6 +251,8 @@ final class Tracker implements Runnable {
         long nextPing = 0;
         long unansweredSince = -1;
         String lastStartError = null;
+        // The reset count the buffers were mapped at; a reset from the Test tab may replace them.
+        int mappedResets = 0;
 
         try (DatagramChannel channel = DatagramChannel.open()) {
             channel.connect(client);
@@ -298,6 +300,14 @@ final class Tracker implements Runnable {
                     }
                 }
 
+                // A reset ended this lease; acquire again without releasing.
+                if (started && EyeTrackingService.resets() != mappedResets) {
+                    face = closeQuietly(face);
+                    eye = closeQuietly(eye);
+                    started = false;
+                    lastStartAttempt = Long.MIN_VALUE / 2;
+                }
+
                 // The service refuses to start while the headset is not worn, so keep trying.
                 if (!started && now - lastStartAttempt >= START_RETRY_MS) {
                     lastStartAttempt = now;
@@ -307,7 +317,7 @@ final class Tracker implements Runnable {
                         if (pauseForOtherApps && service.otherAppRunning()) {
                             listener.onStatus(new Text(R.string.status_paused, pc));
                         } else {
-                            service.acquire(START_TIMEOUT_MS);
+                            mappedResets = service.acquire(START_TIMEOUT_MS);
                             started = true;
                             face = service.trackingDataMemory(EyeTrackingService.MEMORY_FACE_TRACKING);
                             eye = service.trackingDataMemory(EyeTrackingService.MEMORY_EYE_TRACKING);
@@ -322,7 +332,7 @@ final class Tracker implements Runnable {
                         face = closeQuietly(face);
                         eye = closeQuietly(eye);
                         if (started)
-                            release(service);
+                            release(service, mappedResets);
                         started = false;
                     }
                 }
@@ -393,7 +403,7 @@ final class Tracker implements Runnable {
             closeQuietly(face);
             closeQuietly(eye);
             if (started)
-                release(service);
+                release(service, mappedResets);
         }
     }
 
@@ -424,9 +434,9 @@ final class Tracker implements Runnable {
         return null;
     }
 
-    private static void release(EyeTrackingService service) {
+    private static void release(EyeTrackingService service, int lease) {
         try {
-            if (service.release())
+            if (service.release(lease))
                 Log.i(TAG, "Tracking stopped, the camera is released.");
         } catch (EyeTrackingService.ServiceException e) {
             Log.w(TAG, "Cannot stop tracking: " + e.getMessage());

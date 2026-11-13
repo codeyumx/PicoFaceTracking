@@ -80,6 +80,14 @@ The tab runs the headset's eye and face tracking while it is shown, even when tr
 when you leave the tab or close the panel. It shares the running tracking with the connection to the PC, so it does not
 interrupt VRCFaceTracking.
 
+**Reset tracking** on the Test tab is for grey eyes after PICO Connect. PICO Connect can start the tracking service in
+its combined face and lip-sync mode (`ft combined algorithm has been started` in the log). That mode stays on after
+PICO Connect stops, so the app's next start joins it, and its frames mark the eyes as not seen. Pressing the button
+stops every eye and face tracking algorithm on the tracking camera (`StopAlgorithm` with eye and face, then separately
+with `0x2000`: combined in one call, face tracking keeps running) until `et_running` and `ft_running` read 0, then the
+Test tab and the PC connection start plain eye and face tracking again.
+If another app keeps tracking running, it says so; restarting the headset always clears the mode.
+
 ## Pairing by code (optional)
 
 Once paired by code, the app answers only a PC that proves it holds the pairing key, from any address, and encrypts the

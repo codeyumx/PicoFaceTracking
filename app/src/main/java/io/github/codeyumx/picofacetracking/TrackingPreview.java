@@ -74,16 +74,25 @@ final class TrackingPreview implements Runnable {
         boolean started = false;
         long lastStartAttempt = Long.MIN_VALUE / 2;
         long lastFrame = 0;
+        // The reset count the buffers were mapped at; see EyeTrackingService.reset.
+        int mappedResets = 0;
         try {
             service = EyeTrackingService.connect();
             service.addServiceListener(serviceListener);
             while (running) {
                 long now = SystemClock.elapsedRealtime();
+                // A reset ended this lease; acquire again without releasing.
+                if (started && EyeTrackingService.resets() != mappedResets) {
+                    face = closeQuietly(face);
+                    eye = closeQuietly(eye);
+                    started = false;
+                    lastStartAttempt = Long.MIN_VALUE / 2;
+                }
                 // The service refuses to start while the headset is not worn, so keep trying.
                 if (!started && now - lastStartAttempt >= START_RETRY_MS) {
                     lastStartAttempt = now;
                     try {
-                        service.acquire(START_TIMEOUT_MS);
+                        mappedResets = service.acquire(START_TIMEOUT_MS);
                         started = true;
                         face = service.trackingDataMemory(EyeTrackingService.MEMORY_FACE_TRACKING);
                         eye = service.trackingDataMemory(EyeTrackingService.MEMORY_EYE_TRACKING);
@@ -93,7 +102,7 @@ final class TrackingPreview implements Runnable {
                         face = closeQuietly(face);
                         eye = closeQuietly(eye);
                         if (started)
-                            release(service);
+                            release(service, mappedResets);
                         started = false;
                     }
                 }
@@ -122,7 +131,7 @@ final class TrackingPreview implements Runnable {
             closeQuietly(eye);
             if (service != null) {
                 if (started)
-                    release(service);
+                    release(service, mappedResets);
                 try {
                     service.removeServiceListener(serviceListener);
                 } catch (EyeTrackingService.ServiceException e) {
@@ -132,9 +141,9 @@ final class TrackingPreview implements Runnable {
         }
     }
 
-    private static void release(EyeTrackingService service) {
+    private static void release(EyeTrackingService service, int lease) {
         try {
-            if (service.release())
+            if (service.release(lease))
                 Log.i(Tracker.TAG, "Test tab closed, the camera is released.");
         } catch (EyeTrackingService.ServiceException e) {
             Log.w(Tracker.TAG, "Cannot stop tracking: " + e.getMessage());

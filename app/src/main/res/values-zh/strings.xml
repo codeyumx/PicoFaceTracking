@@ -119,6 +119,12 @@
     <string name="test_live">实时。眼睛:%1$s,面部:%2$s。</string>
     <string name="test_seen">已检测到</string>
     <string name="test_not_seen">未检测到</string>
+    <string name="test_reset_help">使用 PICO Connect 后眼睛变灰或只有眨眼在动?PICO Connect 可能让头显的面部追踪停留在唇形同步模式,在头显重启前眼睛都会显示为未检测到。“重置追踪”会停止该模式,并重新启动本应用的眼动追踪和面部追踪;请先关闭 PICO Connect 的面部追踪。</string>
+    <string name="test_reset">重置追踪</string>
+    <string name="test_resetting">正在重置头显的眼动追踪和面部追踪…</string>
+    <string name="test_reset_done">已重置,追踪即将重新开始。如果眼睛仍为灰色,请重启头显。</string>
+    <string name="test_reset_still_running">其他应用(例如 PICO Connect)仍在使用眼动追踪或面部追踪。请停止其面部追踪后再次重置,或重启头显。</string>
+    <string name="test_reset_failed">无法重置追踪(%1$s)。请重启头显。</string>
     <string name="eye_left">"左眼 "</string>
     <string name="eye_right">"右眼 "</string>
     <string name="eye_not_seen">未检测到</string>
