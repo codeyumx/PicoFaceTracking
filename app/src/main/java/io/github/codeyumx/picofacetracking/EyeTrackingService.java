@@ -28,6 +28,12 @@ final class EyeTrackingService {
 
     /** Eye tracking (0x4) and face tracking (0x8), the algorithms this app runs. */
     private static final int EYE_AND_FACE = 0x4 | 0x8;
+    /**
+     * Every algorithm the service offers (GetSupportedTrackingMode 8204): eye, face and 0x2000, which PICO Connect's
+     * combined face and lip-sync mode appears to use.
+     */
+    private static final int ALL_ALGORITHMS = EYE_AND_FACE | 0x2000;
+    private static final int RESET_ATTEMPTS = 8;
 
     static final int MEMORY_EYE_TRACKING = 2;
     static final int MEMORY_FACE_TRACKING = 3;
@@ -37,6 +43,8 @@ final class EyeTrackingService {
     private static int holders;
     /** Whether another app ran eye or face tracking when this app started it. */
     private static boolean otherAppAtStart;
+    /** Counts resets; users map the ring buffers again when it changes, as the service may replace them. */
+    private static volatile int resets;
 
     private final IBinder binder;
 
@@ -60,21 +68,27 @@ final class EyeTrackingService {
     /**
      * Starts eye and face tracking for one more user in this app. The first user starts the algorithms and the last
      * release stops them, so the Test tab and the tracker do not stop each other. Fails while the headset is not worn.
+     *
+     * @return the resets() value this lease belongs to; once resets() differs, a reset has ended the lease.
      */
-    void acquire(int timeoutMs) throws ServiceException {
+    int acquire(int timeoutMs) throws ServiceException {
         synchronized (LEASE) {
             if (holders == 0) {
                 otherAppAtStart = algorithmRunning();
                 startAlgorithm(timeoutMs);
             }
             holders++;
+            return resets;
         }
     }
 
-    /** Ends one acquire; returns true when that was the last user and the camera is released. */
-    boolean release() throws ServiceException {
+    /**
+     * Ends the acquire that returned lease; returns true when that was the last user and the camera is released. A
+     * lease a reset already ended is not counted any more, so releasing it does nothing.
+     */
+    boolean release(int lease) throws ServiceException {
         synchronized (LEASE) {
-            if (holders == 0)
+            if (holders == 0 || lease != resets)
                 return false;
             holders--;
             if (holders > 0)
@@ -92,6 +106,38 @@ final class EyeTrackingService {
         synchronized (LEASE) {
             return holders > 0 ? otherAppAtStart : algorithmRunning();
         }
+    }
+
+    /**
+     * Stops everything on the tracking camera, including clients other apps left behind. PICO Connect can leave face
+     * tracking in its combined face and lip-sync mode ("ft combined algorithm has been started"), whose frames report
+     * the eyes as not seen; a stop from another app does not end it, and the next start joins it instead of starting
+     * plain face tracking. This app's users lose their lease: they notice the new resets() value and acquire again
+     * without releasing, which starts plain eye and face tracking.
+     *
+     * @return whether the service reports no eye or face tracking running afterwards.
+     */
+    boolean reset() throws ServiceException {
+        synchronized (LEASE) {
+            int attempts = 0;
+            do {
+                try {
+                    stopAlgorithm(ALL_ALGORITHMS);
+                } catch (ServiceException e) {
+                    // Nothing left that this call can stop.
+                    break;
+                }
+            } while (++attempts < RESET_ATTEMPTS && algorithmRunning());
+            holders = 0;
+            otherAppAtStart = false;
+            resets++;
+            return !algorithmRunning();
+        }
+    }
+
+    /** Changes with every reset; see resets. */
+    static int resets() {
+        return resets;
     }
 
     private void startAlgorithm(int timeoutMs) throws ServiceException {
@@ -112,12 +158,16 @@ final class EyeTrackingService {
     }
 
     private void stopAlgorithm() throws ServiceException {
+        stopAlgorithm(EYE_AND_FACE);
+    }
+
+    private void stopAlgorithm(int algorithms) throws ServiceException {
         Parcel data = Parcel.obtain();
         Parcel reply = Parcel.obtain();
         try {
             data.writeInterfaceToken(DESCRIPTOR);
             data.writeInt(CAMERA);
-            data.writeInt(EYE_AND_FACE);
+            data.writeInt(algorithms);
             transact(STOP_ALGORITHM, data, reply);
             readStatus("StopAlgorithm", reply);
             checkResult("StopAlgorithm", reply.readInt());
