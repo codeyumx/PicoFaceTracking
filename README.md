@@ -15,7 +15,7 @@ The app is new code, written for Android. Use one of these modules on the PC:
 
 The app is available in:
 
-| Language | In the app |
+| Language | Native name |
 | --- | --- |
 | English | 🇬🇧 English |
 | Japanese | 🇯🇵 日本語 |
