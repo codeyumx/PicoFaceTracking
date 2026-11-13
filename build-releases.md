@@ -62,7 +62,7 @@ the README, and the checksums are already attached as `.sha256` files:
 ```markdown
 Install `PicoFaceTracking.apk` on your headset, then install the tracking module in OSCFT.
 
-**Which module (1.12.0)**
+**Which module (1.12.1)**
 - [OSCFT for VRC](https://github.com/codeyumx/oscft_for_vrc) 0.2.0 or later: `Pico4FaceTracking-OSCFT-native.zip`
   (native, Windows and Linux, no .NET). Install it on the Modules page.
 - [VRCFaceTracking](https://github.com/benaclejames/VRCFaceTracking): `Pico4FaceTracking-VRCFT.zip`. Module Registry,

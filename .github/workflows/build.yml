@@ -175,10 +175,9 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           TAG: ${{ github.ref_name }}
         run: |
-          MODULE_VERSION=$(unzip -p Pico4FaceTracking-VRCFT.zip module.json | jq -r .Version)
           # Short notes; the full instructions are in the README. Checksums are the .sha256 files attached to the release.
           NOTES="Install \`PicoFaceTracking.apk\` on your headset, then install the tracking module in OSCFT."
-          NOTES="$NOTES"$'\n\n'"**Which module (${MODULE_VERSION})**"
+          NOTES="$NOTES"$'\n\n'"**Which module (${TAG#v})**"
           NOTES="$NOTES"$'\n'"- [OSCFT for VRC](https://github.com/codeyumx/oscft_for_vrc) 0.2.0 or later: \`Pico4FaceTracking-OSCFT-native.zip\` (native, Windows and Linux, no .NET). Install it on the Modules page."
           NOTES="$NOTES"$'\n'"- [VRCFaceTracking](https://github.com/benaclejames/VRCFaceTracking): \`Pico4FaceTracking-VRCFT.zip\`. Module Registry, +, pick the zip."
           # A tag with a suffix (v1.9.3-rc1) is a pre-release and does not become the latest release.
