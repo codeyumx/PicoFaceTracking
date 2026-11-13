@@ -34,6 +34,7 @@ import android.widget.TextView;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.UncheckedIOException;
 import java.net.Inet4Address;
 import java.net.InetSocketAddress;
 import java.nio.charset.StandardCharsets;
@@ -50,7 +51,6 @@ public final class MainActivity extends Activity {
     private static final int ON_COLOR = 0xFF2E7D32;
     static final int WARNING_COLOR = 0xFFE65100;
     private static final int IMPORT_LICENCE = 1;
-    private static final String PRIVACY_POLICY = "https://github.com/codeyumx/PicoFaceTracking/blob/main/PRIVACY.md";
     /** Licence files are a few hundred bytes. */
     private static final int MAX_LICENCE_BYTES = 4096;
     private static final String SHOWING_TEST = "showing_test";
@@ -578,18 +578,28 @@ public final class MainActivity extends Activity {
         content.addView(text(getString(R.string.privacy_help), 15));
         Button details = new Button(this);
         details.setText(R.string.privacy_details);
-        details.setOnClickListener(view -> new AlertDialog.Builder(this)
-                .setTitle(R.string.privacy_details)
-                .setMessage(R.string.privacy_dialog)
-                .setPositiveButton(R.string.privacy_close, null)
-                .setNeutralButton(R.string.privacy_full_policy, (dialog, which) -> {
-                    try {
-                        startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(PRIVACY_POLICY)));
-                    } catch (ActivityNotFoundException e) {
-                        result.setText(getString(R.string.no_browser, PRIVACY_POLICY));
-                    }
-                })
-                .show());
+        details.setOnClickListener(view -> {
+            CharSequence policy;
+            try {
+                policy = PrivacyPolicy.text(this);
+            } catch (IOException e) {
+                // The files are bundled by app/build.gradle; a missing one is a broken build.
+                throw new UncheckedIOException(e);
+            }
+            String page = PrivacyPolicy.url(this);
+            new AlertDialog.Builder(this)
+                    .setTitle(R.string.privacy_details)
+                    .setMessage(policy)
+                    .setPositiveButton(R.string.privacy_close, null)
+                    .setNeutralButton(R.string.privacy_full_policy, (dialog, which) -> {
+                        try {
+                            startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(page)));
+                        } catch (ActivityNotFoundException e) {
+                            result.setText(getString(R.string.no_browser, page));
+                        }
+                    })
+                    .show();
+        });
         content.addView(details);
     }
 

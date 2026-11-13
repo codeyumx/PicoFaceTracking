@@ -26,6 +26,8 @@ android {
             def paid = rootProject.file('pro/src')
             if (paid.exists())
                 java.srcDirs += paid
+            // PRIVACY.md and its translations from the repository root, shown under Settings, "Privacy and data".
+            assets.srcDirs += layout.buildDirectory.dir('generated/privacy')
         }
     }
 
@@ -65,6 +67,14 @@ android {
         disable 'ExpiredTargetSdkVersion'
     }
 }
+
+def copyPrivacy = tasks.register('copyPrivacy', Sync) {
+    from(rootProject.projectDir) {
+        include 'PRIVACY*.md'
+    }
+    into layout.buildDirectory.dir('generated/privacy')
+}
+tasks.named('preBuild') { dependsOn copyPrivacy }
 
 dependencies {
     testImplementation 'junit:junit:4.13.2'
