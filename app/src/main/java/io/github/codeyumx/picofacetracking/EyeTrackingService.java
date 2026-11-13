@@ -29,10 +29,11 @@ final class EyeTrackingService {
     /** Eye tracking (0x4) and face tracking (0x8), the algorithms this app runs. */
     private static final int EYE_AND_FACE = 0x4 | 0x8;
     /**
-     * Every algorithm the service offers (GetSupportedTrackingMode 8204): eye, face and 0x2000, which PICO Connect's
-     * combined face and lip-sync mode appears to use.
+     * The third algorithm the service offers (GetSupportedTrackingMode 8204 = 0x2000 | 0x8 | 0x4), probably PICO
+     * Connect's lip sync. Stopped on its own: a stop with 0x2000 added to EYE_AND_FACE ends eye tracking but leaves face
+     * tracking running (isFTStarted stays 1).
      */
-    private static final int ALL_ALGORITHMS = EYE_AND_FACE | 0x2000;
+    private static final int LIP_SYNC = 0x2000;
     private static final int RESET_ATTEMPTS = 8;
 
     static final int MEMORY_EYE_TRACKING = 2;
@@ -121,17 +122,23 @@ final class EyeTrackingService {
         synchronized (LEASE) {
             int attempts = 0;
             do {
-                try {
-                    stopAlgorithm(ALL_ALGORITHMS);
-                } catch (ServiceException e) {
-                    // Nothing left that this call can stop.
-                    break;
-                }
+                // Each stop ends one client; the service may hold several, so stop until it reports nothing running.
+                stopQuietly(EYE_AND_FACE);
+                stopQuietly(LIP_SYNC);
             } while (++attempts < RESET_ATTEMPTS && algorithmRunning());
             holders = 0;
             otherAppAtStart = false;
             resets++;
             return !algorithmRunning();
+        }
+    }
+
+    /** A reset stops what may not be running; the service then answers with an error code, which is expected. */
+    private void stopQuietly(int algorithms) {
+        try {
+            stopAlgorithm(algorithms);
+        } catch (ServiceException ignored) {
+            // Nothing of this kind left to stop.
         }
     }
 
