@@ -86,6 +86,18 @@
     <string name="no_connection_help">只有在 VRCFaceTracking 启动后 5 秒内此头显作出响应,Pico 4 Face Tracking 才会接管眼动追踪和面部追踪。如果在此处开启追踪之前(或头显开机之前)就已启动 VRCFaceTracking,其日志会显示“No PICO headset answered”:请开启追踪,然后重启 VRCFaceTracking。</string>
     <string name="section_after_restart">重启后</string>
     <string name="after_restart_help">如果追踪没有自动恢复,请打开一次本应用。它会以面板形式在 Virtual Desktop 旁边打开,不会关闭 Virtual Desktop。</string>
+    <string name="section_updates">应用更新</string>
+    <string name="installed_version">已安装版本:%1$s</string>
+    <string name="updates_help">仅在按下按钮时检查。检查时会向 GitHub(api.github.com)查询最新版本。和访问任何网站一样,GitHub 会看到头显的 IP 地址。不会发送任何关于你或追踪数据的信息。</string>
+    <string name="check_for_updates">检查更新</string>
+    <string name="update_checking">正在检查 GitHub…</string>
+    <string name="update_available">有新版本 %1$s 可用(已安装:%2$s)。请打开最新版本页面下载。</string>
+    <string name="update_current">已是最新版本(%1$s)。</string>
+    <string name="update_failed">无法检查更新:%1$s</string>
+    <string name="open_latest_release">在 GitHub 上打开最新版本</string>
+    <string name="no_browser">未安装浏览器。最新版本位于 %1$s</string>
+    <string name="section_privacy">隐私</string>
+    <string name="privacy_help">追踪数据只发送到本地网络中的电脑(通过配对码配对后会加密),绝不会发送到互联网。设置、配对密钥和许可证都保存在头显上。本应用没有账号、统计分析或广告。只有在按下“检查更新”(api.github.com)或打开最新版本页面(在浏览器中打开 github.com)时才会连接互联网。完整政策:github.com/codeyumx/PicoFaceTracking/blob/main/PRIVACY.md</string>
     <string name="stop_and_close">停止追踪并关闭应用</string>
     <string name="stop_and_close_help">下次打开本应用或重启头显时,追踪会重新开始。如需保持关闭,请改为关闭顶部的“面部和眼动追踪”。</string>
 

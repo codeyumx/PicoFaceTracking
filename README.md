@@ -52,6 +52,11 @@ PICO opens it as a panel next to Virtual Desktop, so the settings and preview ca
   running when the language changes. Expression names in the Test tab's table stay VRCFaceTracking's parameter names.
 - PICO's own switches (Settings > LAB, `key_et_enable` / `key_ft_enable` in `Settings.System`) cannot be changed by a
 sideloaded app. The app reads them and shows a warning under the eyes and mouth switches while either is off.
+- **App updates**: shows the installed version. **Check for updates** asks GitHub's API for the latest release
+  (pre-releases excluded) and says whether a newer version exists; **Open the latest release on GitHub** opens its
+  page in the browser. The app never checks by itself.
+- **Privacy**: a summary of [PRIVACY.md](PRIVACY.md). Tracking goes only to your PC on the local network; the update
+  check and the release page are the app's only connections to the internet.
 
 ## Tracking adjustments (supporters)
 
