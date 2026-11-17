@@ -44,7 +44,7 @@ If the build fails, `gh run view <run id> --log-failed` shows the failing step.
 
 ## Release
 
-Merge to `main`, bump `versionName` / `versionCode` in `app/build.gradle`, then tag:
+Merge to `main`, bump the version (see below), commit as `Version X.Y.Z`, then tag:
 
 ```
 git tag v1.12.1
@@ -53,6 +53,30 @@ git push origin v1.12.1
 
 The tag build adds the paid features from the private repository and publishes the APK, `Pico4FaceTracking-VRCFT.zip`,
 `Pico4FaceTracking-OSCFT-native.zip` and their checksums as a GitHub release.
+
+### One version for app and modules
+
+The app, the .NET module and the native module share one version number. OSCFT for VRC and VRCFaceTracking read
+`Version` from the module's `module.json` and compare it with the latest release to decide whether an update is
+available. If the module version lags behind the release tag, users are told about an update forever, or never.
+
+Every release, set the same version in:
+
+| File | Field |
+|---|---|
+| `app/build.gradle` | `versionName` (and bump `versionCode` by 1) |
+| `module/module.json` | `Version` |
+| `native/module.json` | `Version` (CI overwrites it from `module/module.json`, keep it in sync anyway) |
+
+The tag is that version with a `v` prefix: `versionName '1.12.2'` → tag `v1.12.2` (`v1.12.2-rc1` publishes a
+pre-release). Bump all three even if only the app or only a module changed.
+
+Check before tagging:
+
+```
+grep -n versionName app/build.gradle
+grep -n '"Version"' module/module.json native/module.json
+```
 
 ### Release notes
 
