@@ -1,5 +1,6 @@
 package io.github.codeyumx.picofacetracking;
 
+import android.os.PowerManager;
 import android.view.Choreographer;
 import android.view.View;
 import android.widget.Button;
@@ -19,6 +20,7 @@ final class TestTab {
     private final GazeView gaze;
     private final EyesView eyes;
     private final MouthView mouth;
+    private final TextView resetResult;
     private final ParameterTable table;
     /** The expression shown in each table row after the eye rows. */
     private final int[] expressionRows = new int[Expressions.COUNT];
@@ -45,23 +47,11 @@ final class TestTab {
         content.addView(activity.text(activity.getString(R.string.test_reset_help), 15));
         Button reset = new Button(activity);
         reset.setText(R.string.test_reset);
-        TextView resetResult = activity.text("", 15);
+        resetResult = activity.text("", 15);
         reset.setOnClickListener(button -> {
             reset.setEnabled(false);
             resetResult.setText(R.string.test_resetting);
-            new Thread(() -> {
-                Text result;
-                try {
-                    result = new Text(EyeTrackingService.connect().reset() ? R.string.test_reset_done : R.string.test_reset_still_running);
-                } catch (EyeTrackingService.ServiceException e) {
-                    result = new Text(R.string.test_reset_failed, e.getMessage());
-                }
-                Text shown = result;
-                activity.runOnUiThread(() -> {
-                    resetResult.setText(shown.get(activity));
-                    reset.setEnabled(true);
-                });
-            }, "TrackingReset").start();
+            activity.resetApp();
         });
         content.addView(reset);
         content.addView(resetResult);
@@ -126,10 +116,15 @@ final class TestTab {
         return view;
     }
 
+    /** After a reset: what it did, shown under the button in the restarted app. */
+    void showResetResult(Text result) {
+        resetResult.setText(result.get(activity));
+    }
+
     void start() {
         if (preview != null)
             return;
-        preview = TrackingPreview.start();
+        preview = TrackingPreview.start(activity.getSystemService(PowerManager.class));
         seenFrame = 0;
         shownStatus = null;
         shownSeen = -1;

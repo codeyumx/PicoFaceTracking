@@ -2,6 +2,7 @@ package io.github.codeyumx.picofacetracking;
 
 import android.os.Binder;
 import android.os.Parcel;
+import android.os.PowerManager;
 import android.os.SystemClock;
 import android.util.Log;
 
@@ -13,23 +14,23 @@ import java.nio.ByteOrder;
  * switches and the tracking adjustments. Shares the running algorithms with the tracker (see EyeTrackingService.acquire).
  */
 final class TrackingPreview implements Runnable {
-    private static final int START_TIMEOUT_MS = 1000;
-    private static final long START_RETRY_MS = 1000;
     private static final long POLL_MS = 10;
     private static final long STALE_MS = 2000;
     private static final Text NO_DATA = new Text(R.string.test_no_data);
 
+    private final PowerManager power;
     private final Object lock = new Object();
     private final TrackingFrame latest = new TrackingFrame();
     private long sequence;
     private volatile Text status = new Text(R.string.test_starting);
     private volatile boolean running = true;
 
-    private TrackingPreview() {
+    private TrackingPreview(PowerManager power) {
+        this.power = power;
     }
 
-    static TrackingPreview start() {
-        TrackingPreview preview = new TrackingPreview();
+    static TrackingPreview start(PowerManager power) {
+        TrackingPreview preview = new TrackingPreview(power);
         new Thread(preview, "TrackingPreview").start();
         return preview;
     }
@@ -69,49 +70,26 @@ final class TrackingPreview implements Runnable {
         ByteBuffer payload = ByteBuffer.allocateDirect(TrackingFrame.LENGTH).order(ByteOrder.LITTLE_ENDIAN);
         TrackingFrame scratch = new TrackingFrame();
         EyeTrackingService service = null;
-        SharedBuffer face = null;
-        SharedBuffer eye = null;
-        boolean started = false;
-        long lastStartAttempt = Long.MIN_VALUE / 2;
+        TrackingSource source = null;
         long lastFrame = 0;
-        // The reset count the buffers were mapped at; see EyeTrackingService.reset.
-        int mappedResets = 0;
         try {
             service = EyeTrackingService.connect();
             service.addServiceListener(serviceListener);
+            source = new TrackingSource(service, power, "Test tab");
             while (running) {
                 long now = SystemClock.elapsedRealtime();
-                // A reset ended this lease; acquire again without releasing.
-                if (started && EyeTrackingService.resets() != mappedResets) {
-                    face = closeQuietly(face);
-                    eye = closeQuietly(eye);
-                    started = false;
-                    lastStartAttempt = Long.MIN_VALUE / 2;
-                }
                 // The service refuses to start while the headset is not worn, so keep trying.
-                if (!started && now - lastStartAttempt >= START_RETRY_MS) {
-                    lastStartAttempt = now;
+                if (source.startDue(now)) {
                     try {
-                        mappedResets = service.acquire(START_TIMEOUT_MS);
-                        started = true;
-                        face = service.trackingDataMemory(EyeTrackingService.MEMORY_FACE_TRACKING);
-                        eye = service.trackingDataMemory(EyeTrackingService.MEMORY_EYE_TRACKING);
+                        source.start(now);
                         lastFrame = now;
                     } catch (EyeTrackingService.ServiceException e) {
                         status = new Text(R.string.test_waiting_headset, e.getMessage());
-                        face = closeQuietly(face);
-                        eye = closeQuietly(eye);
-                        if (started)
-                            release(service, mappedResets);
-                        started = false;
                     }
                 }
 
-                if (started) {
-                    // Both reads run every time so neither ring buffer falls behind.
-                    boolean newFace = face.readLatest(payload, 0, TrackingFrame.FACE_LENGTH);
-                    boolean newEye = eye.readLatest(payload, TrackingFrame.FACE_LENGTH, TrackingFrame.EYE_LENGTH);
-                    if (newFace || newEye) {
+                if (source.started()) {
+                    if (source.read(payload, now) != 0) {
                         scratch.read(payload);
                         synchronized (lock) {
                             latest.copyFrom(scratch);
@@ -127,11 +105,9 @@ final class TrackingPreview implements Runnable {
             Log.e(Tracker.TAG, "Test tab tracking stopped", e);
             status = new Text(R.string.status_stopped, Text.literal(e.getMessage() != null ? e.getMessage() : e.toString()));
         } finally {
-            closeQuietly(face);
-            closeQuietly(eye);
+            if (source != null)
+                source.stop();
             if (service != null) {
-                if (started)
-                    release(service, mappedResets);
                 try {
                     service.removeServiceListener(serviceListener);
                 } catch (EyeTrackingService.ServiceException e) {
@@ -139,20 +115,5 @@ final class TrackingPreview implements Runnable {
                 }
             }
         }
-    }
-
-    private static void release(EyeTrackingService service, int lease) {
-        try {
-            if (service.release(lease))
-                Log.i(Tracker.TAG, "Test tab closed, the camera is released.");
-        } catch (EyeTrackingService.ServiceException e) {
-            Log.w(Tracker.TAG, "Cannot stop tracking: " + e.getMessage());
-        }
-    }
-
-    private static SharedBuffer closeQuietly(SharedBuffer buffer) {
-        if (buffer != null)
-            buffer.close();
-        return null;
     }
 }

@@ -12,6 +12,7 @@ import android.net.wifi.WifiManager;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Looper;
+import android.os.PowerManager;
 import android.util.Log;
 
 import java.net.Inet4Address;
@@ -87,7 +88,8 @@ public final class TrackingService extends Service implements Tracker.Listener {
             if (paid != null)
                 paid.reload(this);
             FaceParts.reload(prefs);
-            tracker = new Tracker(pc, Pairing.fromBase64(prefs.pairingKey()), prefs.pauseForOtherApps(), paid, getApplicationContext().getSystemService(WifiManager.class), this);
+            tracker = new Tracker(pc, Pairing.fromBase64(prefs.pairingKey()), prefs.pauseForOtherApps(), paid,
+                    getApplicationContext().getSystemService(WifiManager.class), getSystemService(PowerManager.class), this);
             trackerThread = new Thread(tracker, "tracking");
             trackerThread.start();
         }
