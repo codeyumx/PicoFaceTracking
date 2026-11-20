@@ -10,8 +10,9 @@ import java.nio.ByteBuffer;
  * through EyeTrackingService.acquire, maps the ring buffers, and starts again when the service dropped them.
  * <p>
  * PICO's service stops eye tracking and forgets every client when the headset sleeps ("stopAlgorithm by sleep") and
- * does not start it again on waking; face tracking can keep running, so frames arrive with the eyes not seen, or stop.
- * So every few seconds the reader checks that the service runs both and that both ring buffers get new slots.
+ * does not start it again on waking; face tracking can keep running, so eye data stops and the eyes stay grey. So
+ * every few seconds the reader checks that the service runs both and that the eye ring buffer gets new slots. (The
+ * face ring buffer gets none while the headset is not worn, so it is not checked.)
  */
 final class TrackingSource {
     static final int NEW_FACE = 1;
@@ -20,7 +21,7 @@ final class TrackingSource {
     private static final int START_TIMEOUT_MS = 1000;
     private static final long START_RETRY_MS = 1000;
     private static final long CHECK_MS = 2000;
-    /** A ring buffer without a new slot for this long counts as stopped (the eye and face slots come every 11 ms). */
+    /** The eye ring buffer without a new slot for this long counts as stopped; slots come many times a second. */
     private static final long STALE_MS = 2000;
     /** Starting again does not help when the headset sees nothing at all, so at most this often. */
     private static final long RESTART_INTERVAL_MS = 10_000;
@@ -37,7 +38,6 @@ final class TrackingSource {
     private int lease;
     private long lastStartAttempt = Long.MIN_VALUE / 2;
     private long nextCheck;
-    private long lastFace;
     private long lastEye;
     private long lastRestart = Long.MIN_VALUE / 2;
 
@@ -70,7 +70,6 @@ final class TrackingSource {
             stop();
             throw e;
         }
-        lastFace = now;
         lastEye = now;
         nextCheck = now + CHECK_MS;
     }
@@ -91,10 +90,8 @@ final class TrackingSource {
 
         // Both reads run every time so neither ring buffer falls behind.
         int fresh = 0;
-        if (face.readLatest(payload, 0, TrackingFrame.FACE_LENGTH)) {
+        if (face.readLatest(payload, 0, TrackingFrame.FACE_LENGTH))
             fresh |= NEW_FACE;
-            lastFace = now;
-        }
         if (eye.readLatest(payload, TrackingFrame.FACE_LENGTH, TrackingFrame.EYE_LENGTH)) {
             fresh |= NEW_EYE;
             lastEye = now;
@@ -115,7 +112,6 @@ final class TrackingSource {
         try {
             problem = !service.trackingRunning() ? "the tracking service stopped eye or face tracking"
                     : now - lastEye > STALE_MS ? "no eye tracking data for " + (now - lastEye) + " ms"
-                    : now - lastFace > STALE_MS ? "no face tracking data for " + (now - lastFace) + " ms"
                     : null;
         } catch (EyeTrackingService.ServiceException e) {
             problem = e.getMessage();

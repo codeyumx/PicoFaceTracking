@@ -104,9 +104,11 @@ the eyes stay grey. The app checks every 2 seconds that the service runs eye and
 both send new data, and starts them again when not (`starting tracking again` in the log).
 
 **Reset the app** on the Test tab stops the app's eye and face tracking on the headset, closes the app and opens it
-again in a new process, so tracking and the connection to the PC start fresh. It cannot stop another app's tracking:
-the service keeps one entry per app, and a stop only removes the caller's. If another app (PICO Connect) still runs
-tracking, the Test tab says so after the restart; restarting the headset always clears it.
+again in a new process, so tracking and the connection to the PC start fresh. It also ends PICO Connect's combined face
+and lip-sync mode when no app uses it any more (`StopAlgorithm` with `0x2008`; a stop with only `0x8` does not leave
+that mode). It cannot stop another app's tracking: the service keeps one entry per app, and a stop only removes the
+caller's. If another app (PICO Connect) still runs tracking, the Test tab says so after the restart; restarting the
+headset always clears it.
 
 ## Pairing by code (optional)
 

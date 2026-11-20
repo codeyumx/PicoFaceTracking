@@ -29,11 +29,12 @@ final class EyeTrackingService {
     /** Eye tracking (0x4) and face tracking (0x8), the algorithms this app runs. */
     private static final int EYE_AND_FACE = 0x4 | 0x8;
     /**
-     * The third algorithm the service offers (GetSupportedTrackingMode 8204 = 0x2000 | 0x8 | 0x4), PICO Connect's
-     * combined face and lip-sync tracking. Stopped on its own: a stop with 0x2000 added to EYE_AND_FACE ends eye
-     * tracking but leaves face tracking running (isFTStarted stays 1).
+     * PICO Connect's face tracking combined with lip sync (GetSupportedTrackingMode 8204 = 0x2000 | 0x8 | 0x4). While it
+     * runs, this app's start joins it ("ft combined algorithm has been started"). StandardAlgorithm::stopFaceAlgorithm
+     * in libpxreyetrackingservice.so leaves the combined clients only for a stop with both 0x2000 and 0x8; a stop with
+     * 0x8 alone leaves plain face tracking. When the last combined client leaves, or none is left, it stops the mode.
      */
-    private static final int LIP_SYNC = 0x2000;
+    private static final int FACE_COMBINED = 0x2000 | 0x8;
 
     static final int MEMORY_EYE_TRACKING = 2;
     static final int MEMORY_FACE_TRACKING = 3;
@@ -112,14 +113,14 @@ final class EyeTrackingService {
      * Stops this app's eye and face tracking and ends every lease in the app; users notice the new resets() value and
      * acquire again without releasing. The service keeps one entry per calling process ("clients' pid" in dumpsys
      * pxreyetrackingservice), and a stop only removes the caller's: other apps' tracking (PICO Connect runs through
-     * com.pico.xr.openxr_runtime) keeps running.
+     * com.pico.xr.openxr_runtime) keeps running. Combined face tracking left running without any client stops.
      *
      * @return whether the service reports no eye or face tracking running afterwards, so no other app uses it.
      */
     boolean reset() throws ServiceException {
         synchronized (LEASE) {
             stopQuietly(EYE_AND_FACE);
-            stopQuietly(LIP_SYNC);
+            stopQuietly(FACE_COMBINED);
             holders = 0;
             otherAppAtStart = false;
             resets++;
@@ -130,20 +131,21 @@ final class EyeTrackingService {
     /**
      * Starts this app's tracking again after the service dropped it: when the headset sleeps, the service stops eye
      * tracking and forgets every client ("stopAlgorithm by sleep") and does not start it again on waking, while face
-     * tracking may keep running, so the frames report the eyes as not seen. Ends every lease in the app like reset;
-     * a lease that already ended does nothing.
+     * tracking may keep running, so the eyes stay grey. Ends every lease in the app like reset; a lease that already
+     * ended does nothing.
      */
     void restart(int lease) {
         synchronized (LEASE) {
             if (lease != resets)
                 return;
             stopQuietly(EYE_AND_FACE);
+            stopQuietly(FACE_COMBINED);
             holders = 0;
             resets++;
         }
     }
 
-    /** A reset stops what may not be running; the service then answers with an error code, which is expected. */
+    /** A stop of what is not running is answered with an error code, which is expected here. */
     private void stopQuietly(int algorithms) {
         try {
             stopAlgorithm(algorithms);
@@ -174,8 +176,13 @@ final class EyeTrackingService {
         }
     }
 
+    /** Leaves eye tracking and plain face tracking, then combined face tracking, whichever this app joined. */
     private void stopAlgorithm() throws ServiceException {
-        stopAlgorithm(EYE_AND_FACE);
+        try {
+            stopAlgorithm(EYE_AND_FACE);
+        } finally {
+            stopQuietly(FACE_COMBINED);
+        }
     }
 
     private void stopAlgorithm(int algorithms) throws ServiceException {
