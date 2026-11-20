@@ -2,9 +2,10 @@ package io.github.codeyumx.picofacetracking;
 
 import android.annotation.SuppressLint;
 import android.net.wifi.WifiManager;
-import android.os.Build;
 import android.os.Binder;
+import android.os.Build;
 import android.os.Parcel;
+import android.os.PowerManager;
 import android.os.SystemClock;
 import android.util.Log;
 
@@ -47,8 +48,6 @@ final class Tracker implements Runnable {
     private static final byte[] PING = {'M', 'A', 'R', 'C', 'O', 0};
     private static final String PONG = "POLO";
     private static final String STOP = "STOP";
-    private static final int START_TIMEOUT_MS = 1000;
-    private static final long START_RETRY_MS = 1000;
     private static final long POLL_MS = 10;
     private static final long PING_WHILE_STREAMING_MS = 25_000;
     /**
@@ -72,15 +71,17 @@ final class Tracker implements Runnable {
     /** The paid tracking adjustments when unlocked, otherwise null. */
     private final PaidFeatures paid;
     private final WifiManager wifi;
+    private final PowerManager power;
     private final Listener listener;
     private volatile boolean running = true;
 
-    Tracker(Inet4Address allowedClient, Pairing pairing, boolean pauseForOtherApps, PaidFeatures paid, WifiManager wifi, Listener listener) {
+    Tracker(Inet4Address allowedClient, Pairing pairing, boolean pauseForOtherApps, PaidFeatures paid, WifiManager wifi, PowerManager power, Listener listener) {
         this.allowedClient = allowedClient;
         this.pairing = pairing;
         this.pauseForOtherApps = pauseForOtherApps;
         this.paid = paid;
         this.wifi = wifi;
+        this.power = power;
         this.listener = listener;
     }
 
@@ -241,18 +242,13 @@ final class Tracker implements Runnable {
         byte[] frame = new byte[TrackingFrame.LENGTH];
         byte[] sealed = new byte[TrackingFrame.LENGTH + Pairing.Session.OVERHEAD];
 
-        SharedBuffer face = null;
-        SharedBuffer eye = null;
-        boolean started = false;
-        long lastStartAttempt = Long.MIN_VALUE / 2;
+        TrackingSource source = new TrackingSource(service, power, "Connection to " + pc);
         long lastSent = Long.MIN_VALUE / 2;
         // The last frame or ping that went out.
         long lastPacket = Long.MIN_VALUE / 2;
         long nextPing = 0;
         long unansweredSince = -1;
         String lastStartError = null;
-        // The reset count the buffers were mapped at; a reset from the Test tab may replace them.
-        int mappedResets = 0;
 
         try (DatagramChannel channel = DatagramChannel.open()) {
             channel.connect(client);
@@ -300,27 +296,15 @@ final class Tracker implements Runnable {
                     }
                 }
 
-                // A reset ended this lease; acquire again without releasing.
-                if (started && EyeTrackingService.resets() != mappedResets) {
-                    face = closeQuietly(face);
-                    eye = closeQuietly(eye);
-                    started = false;
-                    lastStartAttempt = Long.MIN_VALUE / 2;
-                }
-
                 // The service refuses to start while the headset is not worn, so keep trying.
-                if (!started && now - lastStartAttempt >= START_RETRY_MS) {
-                    lastStartAttempt = now;
+                if (source.startDue(now)) {
                     try {
                         // PICO Connect (or another app) already feeds face tracking to the PC; do not send it twice.
                         // Pings continue meanwhile, so the session stays open and tracking starts once the other app stops.
                         if (pauseForOtherApps && service.otherAppRunning()) {
                             listener.onStatus(new Text(R.string.status_paused, pc));
                         } else {
-                            mappedResets = service.acquire(START_TIMEOUT_MS);
-                            started = true;
-                            face = service.trackingDataMemory(EyeTrackingService.MEMORY_FACE_TRACKING);
-                            eye = service.trackingDataMemory(EyeTrackingService.MEMORY_EYE_TRACKING);
+                            source.start(now);
                             Log.i(TAG, "Tracking started for " + pc + ".");
                             lastStartError = null;
                         }
@@ -329,19 +313,12 @@ final class Tracker implements Runnable {
                             Log.w(TAG, "Cannot start tracking yet: " + e.getMessage());
                         lastStartError = e.getMessage();
                         listener.onStatus(new Text(R.string.status_waiting_headset, pc, e.getMessage()));
-                        face = closeQuietly(face);
-                        eye = closeQuietly(eye);
-                        if (started)
-                            release(service, mappedResets);
-                        started = false;
                     }
                 }
 
-                if (started) {
-                    // Both reads run every time so neither ring buffer falls behind.
-                    boolean newFace = face.readLatest(payload, 0, TrackingFrame.FACE_LENGTH);
-                    boolean newEye = eye.readLatest(payload, TrackingFrame.FACE_LENGTH, TrackingFrame.EYE_LENGTH);
-                    if (newFace && newEye) {
+                if (source.started()) {
+                    int fresh = source.read(payload, now);
+                    if (fresh == (TrackingSource.NEW_FACE | TrackingSource.NEW_EYE)) {
                         if (adjustments != null)
                             adjustments.apply(payload);
                         FaceParts.current().apply(payload);
@@ -400,10 +377,7 @@ final class Tracker implements Runnable {
                 SystemClock.sleep(POLL_MS);
             }
         } finally {
-            closeQuietly(face);
-            closeQuietly(eye);
-            if (started)
-                release(service, mappedResets);
+            source.stop();
         }
     }
 
@@ -434,15 +408,6 @@ final class Tracker implements Runnable {
         return null;
     }
 
-    private static void release(EyeTrackingService service, int lease) {
-        try {
-            if (service.release(lease))
-                Log.i(TAG, "Tracking stopped, the camera is released.");
-        } catch (EyeTrackingService.ServiceException e) {
-            Log.w(TAG, "Cannot stop tracking: " + e.getMessage());
-        }
-    }
-
     /**
      * "PICO 4 Pro" or "PICO 4 Enterprise": PICO's product name property. Build.MODEL (A8110) is the same for every
      * PICO 4 variant, so it is only the fallback.
@@ -458,12 +423,6 @@ final class Tracker implements Runnable {
             Log.w(TAG, "Cannot read the product name: " + e);
         }
         return Build.MODEL;
-    }
-
-    private static SharedBuffer closeQuietly(SharedBuffer buffer) {
-        if (buffer != null)
-            buffer.close();
-        return null;
     }
 
     /** Matches DISCOVER_DAEMON, with or without a trailing NUL byte. */

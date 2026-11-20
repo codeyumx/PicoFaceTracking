@@ -29,12 +29,11 @@ final class EyeTrackingService {
     /** Eye tracking (0x4) and face tracking (0x8), the algorithms this app runs. */
     private static final int EYE_AND_FACE = 0x4 | 0x8;
     /**
-     * The third algorithm the service offers (GetSupportedTrackingMode 8204 = 0x2000 | 0x8 | 0x4), probably PICO
-     * Connect's lip sync. Stopped on its own: a stop with 0x2000 added to EYE_AND_FACE ends eye tracking but leaves face
-     * tracking running (isFTStarted stays 1).
+     * The third algorithm the service offers (GetSupportedTrackingMode 8204 = 0x2000 | 0x8 | 0x4), PICO Connect's
+     * combined face and lip-sync tracking. Stopped on its own: a stop with 0x2000 added to EYE_AND_FACE ends eye
+     * tracking but leaves face tracking running (isFTStarted stays 1).
      */
     private static final int LIP_SYNC = 0x2000;
-    private static final int RESET_ATTEMPTS = 8;
 
     static final int MEMORY_EYE_TRACKING = 2;
     static final int MEMORY_FACE_TRACKING = 3;
@@ -110,26 +109,37 @@ final class EyeTrackingService {
     }
 
     /**
-     * Stops everything on the tracking camera, including clients other apps left behind. PICO Connect can leave face
-     * tracking in its combined face and lip-sync mode ("ft combined algorithm has been started"), whose frames report
-     * the eyes as not seen; a stop from another app does not end it, and the next start joins it instead of starting
-     * plain face tracking. This app's users lose their lease: they notice the new resets() value and acquire again
-     * without releasing, which starts plain eye and face tracking.
+     * Stops this app's eye and face tracking and ends every lease in the app; users notice the new resets() value and
+     * acquire again without releasing. The service keeps one entry per calling process ("clients' pid" in dumpsys
+     * pxreyetrackingservice), and a stop only removes the caller's: other apps' tracking (PICO Connect runs through
+     * com.pico.xr.openxr_runtime) keeps running.
      *
-     * @return whether the service reports no eye or face tracking running afterwards.
+     * @return whether the service reports no eye or face tracking running afterwards, so no other app uses it.
      */
     boolean reset() throws ServiceException {
         synchronized (LEASE) {
-            int attempts = 0;
-            do {
-                // Each stop ends one client; the service may hold several, so stop until it reports nothing running.
-                stopQuietly(EYE_AND_FACE);
-                stopQuietly(LIP_SYNC);
-            } while (++attempts < RESET_ATTEMPTS && algorithmRunning());
+            stopQuietly(EYE_AND_FACE);
+            stopQuietly(LIP_SYNC);
             holders = 0;
             otherAppAtStart = false;
             resets++;
             return !algorithmRunning();
+        }
+    }
+
+    /**
+     * Starts this app's tracking again after the service dropped it: when the headset sleeps, the service stops eye
+     * tracking and forgets every client ("stopAlgorithm by sleep") and does not start it again on waking, while face
+     * tracking may keep running, so the frames report the eyes as not seen. Ends every lease in the app like reset;
+     * a lease that already ended does nothing.
+     */
+    void restart(int lease) {
+        synchronized (LEASE) {
+            if (lease != resets)
+                return;
+            stopQuietly(EYE_AND_FACE);
+            holders = 0;
+            resets++;
         }
     }
 
@@ -184,9 +194,18 @@ final class EyeTrackingService {
         }
     }
 
-    /** Whether any client runs eye or face tracking. The service counts clients per process. */
+    /**
+     * Whether any client runs eye or face tracking. Face tracking combined with lip sync is left out: after the headset
+     * slept it can keep running with no client at all (dumpsys: "0 clients connect to FT-combined").
+     */
     private boolean algorithmRunning() throws ServiceException {
         return algorithmResult("et_running") != 0 || algorithmResult("ft_running") != 0;
+    }
+
+    /** Whether both eye tracking and face tracking (plain or combined with lip sync) run, as this app needs. */
+    boolean trackingRunning() throws ServiceException {
+        return algorithmResult("et_running") != 0
+                && (algorithmResult("ft_running") != 0 || algorithmResult("ft_lipsync_running") != 0);
     }
 
     private int algorithmResult(String key) throws ServiceException {

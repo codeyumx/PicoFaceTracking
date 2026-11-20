@@ -3,6 +3,7 @@ package io.github.codeyumx.picofacetracking;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.ActivityNotFoundException;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -16,10 +17,12 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
+import android.os.Process;
 import android.provider.Settings;
 import android.text.InputFilter;
 import android.text.InputType;
 import android.text.method.DigitsKeyListener;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.View;
 import android.widget.Button;
@@ -54,6 +57,9 @@ public final class MainActivity extends Activity {
     /** Licence files are a few hundred bytes. */
     private static final int MAX_LICENCE_BYTES = 4096;
     private static final String SHOWING_TEST = "showing_test";
+    /** Set on the restart after a reset: the result's string resource, and its argument (an error) if any. */
+    private static final String EXTRA_RESET_RESULT = "reset_result";
+    private static final String EXTRA_RESET_DETAIL = "reset_detail";
 
     private final Handler handler = new Handler(Looper.getMainLooper());
     private final Runnable refresh = new Runnable() {
@@ -223,7 +229,13 @@ public final class MainActivity extends Activity {
         pages.addView(testTab.view());
         root.addView(pages, new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, 0, 1f));
         setContentView(root);
-        showTab(savedInstanceState != null && savedInstanceState.getBoolean(SHOWING_TEST));
+        // A restart after a reset opens the Test tab with the result; a recreated screen shows the tab it showed.
+        int resetResult = savedInstanceState == null ? getIntent().getIntExtra(EXTRA_RESET_RESULT, 0) : 0;
+        showTab(resetResult != 0 || savedInstanceState != null && savedInstanceState.getBoolean(SHOWING_TEST));
+        if (resetResult != 0) {
+            String detail = getIntent().getStringExtra(EXTRA_RESET_DETAIL);
+            testTab.showResetResult(detail != null ? new Text(resetResult, detail) : new Text(resetResult));
+        }
 
         requestMissingPermissions();
     }
@@ -254,6 +266,35 @@ public final class MainActivity extends Activity {
     protected void onSaveInstanceState(Bundle state) {
         super.onSaveInstanceState(state);
         state.putBoolean(SHOWING_TEST, showingTest);
+    }
+
+    /**
+     * Reset on the Test tab: stops this app's eye and face tracking on the headset and starts the app again in a new
+     * process, so nothing of the old one is left (tracking threads, mapped ring buffers, leases, the PC connection).
+     * The new process starts tracking again as opening the app does, and shows the Test tab with the result.
+     */
+    void resetApp() {
+        testTab.stop();
+        TrackingService.stop(this);
+        new Thread(() -> {
+            int result;
+            String detail = null;
+            try {
+                result = EyeTrackingService.connect().reset() ? R.string.test_reset_done : R.string.test_reset_other_app;
+            } catch (EyeTrackingService.ServiceException e) {
+                result = R.string.test_reset_failed;
+                detail = e.getMessage();
+            }
+            Log.i(Tracker.TAG, "Reset: restarting the app.");
+            Intent restart = Intent.makeRestartActivityTask(new ComponentName(this, MainActivity.class))
+                    .putExtra(EXTRA_RESET_RESULT, result)
+                    .putExtra(EXTRA_RESET_DETAIL, detail);
+            runOnUiThread(() -> {
+                startActivity(restart);
+                // The activity just started opens in a new process.
+                Process.killProcess(Process.myPid());
+            });
+        }, "AppReset").start();
     }
 
     /** The Test tab runs the headset's tracking only while it is shown. */

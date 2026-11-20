@@ -97,13 +97,16 @@ The tab runs the headset's eye and face tracking while it is shown, even when tr
 when you leave the tab or close the panel. It shares the running tracking with the connection to the PC, so it does not
 interrupt VRCFaceTracking.
 
-**Reset tracking** on the Test tab is for grey eyes after PICO Connect. PICO Connect can start the tracking service in
-its combined face and lip-sync mode (`ft combined algorithm has been started` in the log). That mode stays on after
-PICO Connect stops, so the app's next start joins it, and its frames mark the eyes as not seen. Pressing the button
-stops every eye and face tracking algorithm on the tracking camera (`StopAlgorithm` with eye and face, then separately
-with `0x2000`: combined in one call, face tracking keeps running) until `et_running` and `ft_running` read 0, then the
-Test tab and the PC connection start plain eye and face tracking again.
-If another app keeps tracking running, it says so; restarting the headset always clears the mode.
+**Grey eyes.** When the headset sleeps (taken off, or the power button), PICO's tracking service stops eye tracking
+and forgets every app that used it (`stopAlgorithm by sleep` in the log), and does not start it again on waking. Face
+tracking can keep running, PICO Connect's combined face and lip-sync mode even with no app left, so eye data stops and
+the eyes stay grey. The app checks every 2 seconds that the service runs eye and face tracking and that
+both send new data, and starts them again when not (`starting tracking again` in the log).
+
+**Reset the app** on the Test tab stops the app's eye and face tracking on the headset, closes the app and opens it
+again in a new process, so tracking and the connection to the PC start fresh. It cannot stop another app's tracking:
+the service keeps one entry per app, and a stop only removes the caller's. If another app (PICO Connect) still runs
+tracking, the Test tab says so after the restart; restarting the headset always clears it.
 
 ## Pairing by code (optional)
 
