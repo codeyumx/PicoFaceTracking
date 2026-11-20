@@ -58,7 +58,7 @@ The tag build adds the paid features from the private repository and publishes t
 
 The app, the .NET module and the native module share one version number. VRCFaceTracking reads `Version` from the
 .NET module's `module.json` and compares it with the latest release. OSCFT for VRC compares the native module's
-`Version` with `nativeModuleVersion` in `versions.json` on `main` (`UpdateUrl` / `UpdateVersionField` in
+`Version` with `nativeModuleVersion` in `versions.json` on `main` (`UpdateFile` / `UpdateVersionField` in
 `native/module.json`). If either lags behind, users are told about an update forever, or never.
 
 Every release, set the same version in:
