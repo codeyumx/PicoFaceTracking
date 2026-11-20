@@ -166,17 +166,54 @@ jobs:
     needs: [app, module, native-zip]
     runs-on: ubuntu-latest
     steps:
+      # For app/build.gradle and versions.json; before the download, which it would otherwise clean away.
+      - uses: actions/checkout@v4
+
       - uses: actions/download-artifact@v4
         with:
           merge-multiple: true
+
+      - name: Component versions
+        id: versions
+        env:
+          TAG: ${{ github.ref_name }}
+        run: |
+          # What each component ships with: the app's versionName and the Version in each module zip's module.json.
+          APP=$(sed -n "s/^ *versionName *'\(.*\)'.*/\1/p" app/build.gradle)
+          MODULE=$(unzip -p Pico4FaceTracking-VRCFT.zip module.json | jq -r '.Version // empty')
+          NATIVE=$(unzip -p Pico4FaceTracking-OSCFT-native.zip module.json | jq -r '.Version // empty')
+          for pair in "app=$APP" "module=$MODULE" "native=$NATIVE"; do
+            [[ -n "${pair#*=}" ]] || { echo "::error::no ${pair%%=*} version found"; exit 1; }
+            echo "$pair" >> "$GITHUB_OUTPUT"
+          done
+          # versions.json is where OSCFT users' update notices come from (build-releases.md). Pre-releases leave it at
+          # the last full release; a full release must list exactly what it ships.
+          [[ "$TAG" == *-* ]] && exit 0
+          failed=0
+          for pair in "appVersion=$APP" "moduleVersion=$MODULE" "nativeModuleVersion=$NATIVE"; do
+            key=${pair%%=*} shipped=${pair#*=}
+            listed=$(jq -r --arg k "$key" '.[$k] // empty' versions.json)
+            if [[ "$listed" != "$shipped" ]]; then
+              echo "::error file=versions.json::$key is '$listed' but the release ships $shipped"
+              failed=1
+            fi
+          done
+          exit $failed
 
       - name: Publish release
         env:
           GH_TOKEN: ${{ github.token }}
           TAG: ${{ github.ref_name }}
+          APP_VERSION: ${{ steps.versions.outputs.app }}
+          MODULE_VERSION: ${{ steps.versions.outputs.module }}
+          NATIVE_VERSION: ${{ steps.versions.outputs.native }}
         run: |
           # Short notes; the full instructions are in the README. Checksums are the .sha256 files attached to the release.
           NOTES="Install \`PicoFaceTracking.apk\` on your headset, then install the tracking module in OSCFT."
+          NOTES="$NOTES"$'\n\n'"**Versions**"
+          NOTES="$NOTES"$'\n'"- App: $APP_VERSION"
+          NOTES="$NOTES"$'\n'"- OSCFT native module: $NATIVE_VERSION"
+          NOTES="$NOTES"$'\n'"- VRCFaceTracking module: $MODULE_VERSION"
           NOTES="$NOTES"$'\n\n'"**Which module (${TAG#v})**"
           NOTES="$NOTES"$'\n'"- [OSCFT for VRC](https://github.com/codeyumx/oscft_for_vrc) 0.2.0 or later: \`Pico4FaceTracking-OSCFT-native.zip\` (native, Windows and Linux, no .NET). Install it on the Modules page."
           NOTES="$NOTES"$'\n'"- [VRCFaceTracking](https://github.com/benaclejames/VRCFaceTracking): \`Pico4FaceTracking-VRCFT.zip\`. Module Registry, +, pick the zip."
